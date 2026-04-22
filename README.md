@@ -1,43 +1,38 @@
-🏟️ Kamehouse Gym - Sistema de Gestión Pro
+# 🏟️ Kamehouse Gym - Sistema de Gestión Pro
 
-Kamehouse Gym es una solución "Full-Stack" desarrollada para la administración moderna de centros deportivos. No es solo una agenda; es una estación de mando que integra datos meteorológicos, música y gestión administrativa en una interfaz inspirada en la estética de Next.js.
-⚡ Características Destacadas
-🚀 Dashboard "Estación de Mando"
+- Kamehouse Gym es una solución "Full-Stack" desarrollada para la administración moderna de centros deportivos. No es solo una agenda; es una estación de mando que integra datos meteorológicos, música y gestión administrativa en una interfaz inspirada en la estética de Next.js.
 
-    Contexto Total: Visualiza los alumnos agendados para el día actual.
+## ⚡ Características Destacadas
 
-    Smart Widgets: * ☁️ Clima en tiempo real (Quintero, Región de Valparaíso) vía Open-Meteo.
+## 🚀 Dashboard "Estación de Mando"
 
-        🕒 Reloj digital dinámico de alta precisión.
+- **Contexto Total:** Visualiza los alumnos agendados para el día actual.
+- **Smart Widgets:** ☁️ Clima en tiempo real (Quintero, Región de Valparaíso) vía Open-Meteo.
+- **Reloj digital dinámico de alta precisión** 🕒.
+- **Kame House Radio:** Integración con Spotify para control de ambiente musical.
 
-    Kame House Radio: Integración con Spotify para control de ambiente musical.
+## 📅 Agenda Inteligente
 
-📅 Agenda Inteligente
+- **Gestión Dual:** Flujos separados para Entrenamiento y Nutrición.
+- **Navegación Temporal:** Control total de semanas pasadas y futuras.
+- **Vista Semanal:** Calendario dividido por jornadas (Mañana/Tarde) para una lectura rápida.
 
-    Gestión Dual: Flujos separados para Entrenamiento y Nutrición.
+## 📋 Administración de Alumnos
 
-    Navegación Temporal: Control total de semanas pasadas y futuras.
+- **Fichas Técnicas:** Perfiles detallados con historial de asistencia.
+- **Reportabilidad:** Generación de reportes y fichas en PDF listas para impresión.
 
-    Vista Semanal: Calendario dividido por jornadas (Mañana/Tarde) para una lectura rápida.
+## 🛠️ Stack Tecnológico
+- Tecnología	Uso
+- Python / Django	Lógica de negocio y servidor.
+- Bootstrap 5 / CSS3	Diseño UI/UX moderno y responsivo.
+- JavaScript (Vanilla)	Widgets dinámicos y manejo de APIs.
+- Open-Meteo API	Datos meteorológicos costeros.
+- Spotify Embed	Streaming de audio integrado.
 
-📋 Administración de Alumnos
+## 👤 Autor
 
-    Fichas Técnicas: Perfiles detallados con historial de asistencia.
+- **Desarrollado por Perseus Technology bajo la dirección de:**
 
-    Reportabilidad: Generación de reportes y fichas en PDF listas para impresión.
-
-🛠️ Stack Tecnológico
-Tecnología	Uso
-Python / Django	Lógica de negocio y servidor.
-Bootstrap 5 / CSS3	Diseño UI/UX moderno y responsivo.
-JavaScript (Vanilla)	Widgets dinámicos y manejo de APIs.
-Open-Meteo API	Datos meteorológicos costeros.
-Spotify Embed	Streaming de audio integrado.
-
-👤 Autor
-
-Desarrollado por Perseus Technology bajo la dirección de:
-
-    Ingeniería: IT Developer & Sound Engineer.
-
-    Misión: Digitalizar la pasión por el deporte con herramientas de ingeniería de software.
+    - Ingeniería: IT Developer & Sound Engineer.
+    - Misión: Digitalizar la pasión por el deporte con herramientas de ingeniería de software.
