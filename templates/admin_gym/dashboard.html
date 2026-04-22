@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load gym_tags %} 
+
+{% block content %}
+<style>
+    #modalAlumno p {
+        margin-bottom: 1rem;
+        display: block;
+    }
+    #modalAlumno label {
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        color: #495057;
+    }
+    #modalAlumno input, #modalAlumno select, #modalAlumno textarea {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+    .table-fixed { table-layout: fixed; }
+    .reserva-cell { height: 35px; }
+    .reserva-cell > div { display: flex; justify-content: center; align-items: center; }
+    .transition-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+    .transition-hover:hover { transform: translateY(-2px); box-shadow: 0 .25rem .5rem rgba(0,0,0,.15)!important; }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2 border-bottom pb-2">
+        <h1 class="fw-bold text-dark m-0">SISTEMA DE RESERVAS KAMEHOUSE</h1>
+        <div class="d-flex align-items-center">
+            <i class="bi bi-person-circle fs-3 me-2 text-muted"></i>
+            <span class="fw-bold text-uppercase">
+                {% if user.get_full_name %}
+                    {{ user.get_full_name }}
+                {% else %}
+                    {{ user.username }}
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9 col-md-12">
+            
+            <div class="d-flex justify-content-start gap-3 mb-4">
+                <button class="btn btn-outline-primary px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoBloque">
+                    <i class="bi bi-clock-history me-2"></i>CREAR BLOQUE
+                </button>
+                <button class="btn btn-outline-dark px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalIngresoRapido">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>INGRESAR RESERVA
+                </button>
+                <button class="btn btn-primary px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAlumno">
+                    <i class="bi bi-person-plus-fill me-2"></i>AGREGAR ALUMNOS
+                </button>
+
+                <div class="modal fade" id="modalAlumno" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content border-0 shadow">
+                        <form method="post" action="{% url 'registrar_alumno' %}">
+                            {% csrf_token %}
+                            <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title fw-bold">NUEVA FICHA DE ASESORÍA - KAME HOUSE</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                                <div class="alert alert-info py-2 small">
+                                    <i class="bi bi-info-circle me-2"></i> Completa todos los campos según la ficha de evaluación física.
+                                </div>
+                                
+                                <div class="row g-3">
+                                    {{ form.as_p }}
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">GUARDAR REGISTRO</button>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-white p-4 rounded shadow-sm border">
+                <h4 class="fw-bold text-secondary mb-3">BLOQUES. MAÑANA</h4>
+                <div class="text-muted small mb-3">SEMANA: {{ lunes|date:"d M" }} - {{ domingo|date:"d M, Y" }}</div>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm table-fixed text-center m-0 align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 80px;">Hora</th>
+                                {% for dia in dias_semana %}
+                                    <th>{{ dia|date:"l"|capfirst }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for time_slot in times_slots %}
+                                {% if time_slot.hour < 12 %} <tr>
+                                    <td class="fw-bold bg-light">{{ time_slot|time:"H:i" }}</td>
+                                    {% for dia in dias_semana %}
+                                        <td class="reserva-cell p-0" data-dia="{{ dia|date:'Y-m-d' }}" data-inicio="{{ time_slot|time:'H:i:s' }}">
+                                            
+                                            {% get_bloque bloques_semana dia time_slot as bloque %}
+                                            
+                                            {% if bloque %}
+                                                {% with ocupacion=bloque.reservas_bloque.count %}
+                                                    {% if ocupacion >= bloque.capacidad_maxima %}
+                                                        <div class="bg-danger text-white w-100 h-100 p-1 transition-hover" 
+                                                             title="Lleno - Ver asistentes" 
+                                                             style="cursor: pointer;"
+                                                             data-bs-toggle="modal" 
+                                                             data-bs-target="#modalAgendar"
+                                                             onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
+                                                            <small>FULL</small>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="bg-success text-white w-100 h-100 p-1 transition-hover" 
+                                                             title="Disponible - Clic para agendar" 
+                                                             style="cursor: pointer;"
+                                                             data-bs-toggle="modal" 
+                                                             data-bs-target="#modalAgendar"
+                                                             onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
+                                                            <small>{{ ocupacion }} / {{ bloque.capacidad_maxima }}</small>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% else %}
+                                                <div class="bg-light w-100 h-100 p-1 text-muted">--</div>
+                                            {% endif %}
+
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-muted small mt-2">8 a 10 por Bloque.</div>
+            </div>
+
+            <div class="mb-5 bg-white p-4 rounded shadow-sm border">
+                <h4 class="fw-bold text-secondary mb-3">BLOQUES. TARDE</h4>
+                <div class="text-muted small mb-3">SEMANA: {{ lunes|date:"d M" }} - {{ domingo|date:"d M, Y" }} | Renovación.</div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm table-fixed text-center m-0 align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 80px;">Hora</th>
+                                {% for dia in dias_semana %}
+                                    <th>{{ dia|date:"l"|capfirst }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for time_slot in times_slots %}
+                                {% if time_slot.hour >= 12 %} <tr>
+                                    <td class="fw-bold bg-light">{{ time_slot|time:"H:i" }}</td>
+                                    {% for dia in dias_semana %}
+                                        <td class="reserva-cell p-0">
+                                            
+                                            {% get_bloque bloques_semana dia time_slot as bloque %}
+                                            
+                                            {% if bloque %}
+                                                {% with ocupacion=bloque.reservas_bloque.count %}
+                                                    {% if ocupacion >= bloque.capacidad_maxima %}
+                                                        <div class="bg-danger text-white w-100 h-100 p-1 transition-hover" 
+                                                             title="Lleno - Ver asistentes" 
+                                                             style="cursor: pointer;"
+                                                             data-bs-toggle="modal" 
+                                                             data-bs-target="#modalAgendar"
+                                                             onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
+                                                            <small>FULL</small>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="bg-success text-white w-100 h-100 p-1 transition-hover" 
+                                                             title="Disponible - Clic para agendar" 
+                                                             style="cursor: pointer;"
+                                                             data-bs-toggle="modal" 
+                                                             data-bs-target="#modalAgendar"
+                                                             onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
+                                                            <small>{{ ocupacion }} / {{ bloque.capacidad_maxima }}</small>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% else %}
+                                                <div class="bg-light w-100 h-100 p-1 text-muted">--</div>
+                                            {% endif %}
+
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-muted small mt-2">8 a 10 por Bloque.</div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-12">
+            <div class="mb-4 bg-white p-4 rounded shadow-sm border">
+                <h5 class="fw-bold text-primary mb-3 text-uppercase">Ficha Alumno</h5>
+                {% if alumno_detalle %}
+                    <p class="mb-1"><strong>Nombre:</strong> {{ alumno_detalle.nombre_completo }}</p>
+                    <p class="mb-1"><strong>Contacto:</strong> {{ alumno_detalle.telefono }}</p>
+                    <p class="mb-1"><strong>Edad:</strong> {{ alumno_detalle.edad }} años</p>
+                    <p class="mb-1"><strong>Objetivo:</strong> <span class="small text-muted">{{ alumno_detalle.objetivo|truncatechars:50 }}</span></p>
+                    <hr>
+                    <a href="{% url 'detalle_alumno' alumno_detalle.pk %}" class="mb-0 small text-primary text-decoration-none" style="cursor:pointer;">Ver ficha completa <i class="bi bi-arrow-right"></i></a>
+                {% else %}
+                    <p class="text-muted italic">Selecciona un alumno o registra uno nuevo.</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-4 bg-white p-4 rounded shadow-sm border">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-success m-0">CANTIDAD ALUMNOS</h5>
+                    <span class="badge bg-success fs-6">{{ total_alumnos }}</span>
+                </div>
+                
+                <p class="text-muted mb-1"><i class="bi bi-people-fill me-2"></i><strong>Conteo:</strong> {{ total_alumnos }} Alumnos registrados</p>
+                <div class="my-3 ps-3 border-start border-success border-2" style="max-height: 150px; overflow-y: auto;">
+                    {% for alumno in alumnos_registrados %}
+                        <div class="small text-dark mb-1 d-flex align-items-center">
+                            <i class="bi bi-dot text-success fs-4"></i>
+                            <span class="text-truncate">{{ alumno.nombre_completo }}</span>
+                        </div>
+                    {% empty %}
+                        <div class="small text-muted ms-2 italic">Sin alumnos registrados</div>
+                    {% endfor %}
+                </div>
+                <p class="text-muted mb-4"><i class="bi bi-list-check me-2"></i><strong>Listado:</strong> <a href="/gym/alumnos/" class="text-decoration-none fw-bold">Ver directorio completo</a></p>
+                
+                <h6 class="fw-bold mt-4 border-bottom pb-2">GRÁFICO: RESERVAS DE {{ nombre_mes|upper }}</h6>
+                
+                <div class="mt-3 w-100" style="height: 200px;">
+                    <canvas id="graficoMes"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalIngresoRapido" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+      <form method="post" action="{% url 'agendar_reserva' %}">
+        {% csrf_token %}
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title">INGRESAR RESERVA MANUAL</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+            <div class="mb-3">
+                <label class="fw-bold">1. Seleccionar Alumno</label>
+                <select name="alumno_id" class="form-select" required>
+                    <option value="">-- Seleccionar --</option>
+                    {% for alu in alumnos_registrados %}
+                        <option value="{{ alu.id }}">{{ alu.nombre_completo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="fw-bold">2. Fecha</label>
+                <input type="date" id="fechaReserva" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="fw-bold">3. Bloque de Horario</label>
+                <select name="bloque_id" id="selectBloque" class="form-select" required disabled>
+                    <option value="">Primero elige una fecha...</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">CONFIRMAR INGRESO</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalNuevoBloque" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+      <form method="post" action="{% url 'crear_bloque_manual' %}">
+        {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>ACTIVAR JORNADA DE BLOQUES</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+            
+            <div class="alert alert-info py-2 small mb-4">
+                <i class="bi bi-info-circle me-2"></i> Esto generará todos los bloques de 30 minutos para la jornada seleccionada.
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold text-secondary">1. Fecha a Activar</label>
+                <input type="date" name="dia" class="form-control form-control-lg" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="fw-bold text-secondary">2. Seleccionar Jornada</label>
+                <select name="jornada" class="form-select form-select-lg" required>
+                    <option value="" disabled selected>-- Elegir Mañana o Tarde --</option>
+                    <option value="manana">☀️ Jornada Mañana (06:30 a 11:00)</option>
+                    <option value="tarde">🌙 Jornada Tarde (17:00 a 20:30)</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="fw-bold text-secondary">3. Cupos por Bloque</label>
+                <input type="number" name="capacidad" class="form-control form-control-lg" min="1" max="50" value="10" required>
+                <small class="text-muted">Por defecto: 10 alumnos por cada bloque de media hora.</small>
+            </div>
+            
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">GENERAR BLOQUES</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalAgendar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title"><i class="bi bi-card-list me-2"></i>Detalle del Bloque</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+            <h6 class="text-primary fw-bold mb-3 border-bottom pb-2" id="textoBloqueInfo"></h6>
+            
+            <p class="fw-bold mb-2">Alumnos Inscritos:</p>
+            <div id="contenedorAsistentes" class="mb-4">
+                <div class="text-center text-muted spinner-border spinner-border-sm" role="status"></div> Cargando...
+            </div>
+            
+            <div id="seccionAgregarReserva">
+                <hr>
+                <form method="post" action="{% url 'agendar_reserva' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="bloque_id" id="inputBloqueId">
+                    
+                    <label class="fw-bold mb-2 text-success">Añadir Alumno al Bloque:</label>
+                    <div class="input-group">
+                        <select name="alumno_id" class="form-select" required>
+                            <option value="" disabled selected>-- Buscar Alumno --</option>
+                            {% for alu in alumnos_registrados %}
+                                <option value="{{ alu.id }}">{{ alu.nombre_completo }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-success fw-bold">Añadir</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="mensajeBloqueLleno" class="alert alert-danger mt-3" style="display: none;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>Este bloque ha alcanzado su capacidad máxima.
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.getElementById('fechaReserva').addEventListener('change', function() {
+        const fecha = this.value;
+        const selectBloque = document.getElementById('selectBloque');
+        
+        if (!fecha) return;
+
+        fetch(`/gym/obtener-bloques/?fecha=${fecha}`)
+            .then(response => response.json())
+            .then(data => {
+                selectBloque.innerHTML = '<option value="">-- Seleccionar Bloque --</option>';
+                if (data.bloques.length > 0) {
+                    data.bloques.forEach(b => {
+                        let opt = document.createElement('option');
+                        opt.value = b.id;
+                        opt.innerHTML = b.texto;
+                        selectBloque.appendChild(opt);
+                    });
+                    selectBloque.disabled = false;
+                } else {
+                    selectBloque.innerHTML = '<option value="">Sin cupos para este día</option>';
+                    selectBloque.disabled = true;
+                }
+            });
+    });
+
+    function abrirDetalleBloque(bloqueId, diaTexto, horaTexto) {
+        document.getElementById('inputBloqueId').value = bloqueId;
+        document.getElementById('textoBloqueInfo').innerText = 'Día ' + diaTexto + ' a las ' + horaTexto;
+        document.getElementById('contenedorAsistentes').innerHTML = '<div class="text-center text-muted"><div class="spinner-border spinner-border-sm" role="status"></div> Cargando...</div>';
+        
+        document.getElementById('seccionAgregarReserva').style.display = 'none';
+        document.getElementById('mensajeBloqueLleno').style.display = 'none';
+
+        fetch(`/gym/bloque/${bloqueId}/detalle/`)
+            .then(response => response.json())
+            .then(data => {
+                let listaHtml = '<ul class="list-group list-group-flush border rounded">';
+                if(data.asistentes.length > 0) {
+                    data.asistentes.forEach(a => {
+                        listaHtml += `<li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                            <strong>${a.nombre}</strong> <small class="text-muted"><i class="bi bi-telephone-fill me-1"></i>${a.telefono}</small>
+                        </li>`;
+                    });
+                } else {
+                    listaHtml += '<li class="list-group-item text-muted text-center py-3">Aún no hay inscritos en este horario</li>';
+                }
+                listaHtml += '</ul>';
+                document.getElementById('contenedorAsistentes').innerHTML = listaHtml;
+
+                if(data.ocupacion >= data.capacidad_maxima) {
+                    document.getElementById('mensajeBloqueLleno').style.display = 'block';
+                } else {
+                    document.getElementById('seccionAgregarReserva').style.display = 'block';
+                }
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const fechas = {{ fechas_grafico|safe }};
+        const totales = {{ totales_grafico|safe }};
+
+        const ctx = document.getElementById('graficoMes').getContext('2d');
+        
+        if (fechas.length === 0) {
+            document.getElementById('graficoMes').style.display = 'none';
+            ctx.canvas.parentNode.innerHTML = '<div class="text-center text-muted mt-5 pt-3"><i class="bi bi-bar-chart text-light fs-1"></i><p>Aún no hay reservas este mes</p></div>';
+            return;
+        }
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: fechas,
+                datasets: [{
+                    label: 'Asistencias agendadas',
+                    data: totales,
+                    backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

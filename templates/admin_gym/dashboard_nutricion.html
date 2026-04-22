@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load gym_tags %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2 border-bottom pb-2">
+        <h1 class="fw-bold text-dark m-0"><i class="bi bi-apple text-success me-2"></i>AGENDA NUTRICIONAL</h1>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-success px-3 py-2 text-uppercase">Área Nutrición</span>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-start gap-3 mb-4">
+        <button class="btn btn-outline-success px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoBloque">
+            <i class="bi bi-calendar-plus me-2"></i>ACTIVAR BLOQUES NUTRICIÓN
+        </button>
+        <button class="btn btn-dark px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalIngresoRapido">
+            <i class="bi bi-box-arrow-in-right me-2"></i>AGENDAR CITA NUTRICIONAL
+        </button>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow-sm border mb-5">
+        <h5 class="fw-bold text-secondary mb-3">CONTROL DE CITAS - {{ lunes|date:"d M" }} al {{ domingo|date:"d M" }}</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 100px;">Hora</th>
+                        {% for dia in dias_semana %}
+                            <th>{{ dia|date:"l"|capfirst }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for time_slot in times_slots %}
+                    <tr>
+                        <td class="fw-bold bg-light">{{ time_slot|time:"H:i" }}</td>
+                        {% for dia in dias_semana %}
+                            <td class="p-0" style="height: 40px;">
+                                {% get_bloque bloques_semana dia time_slot as bloque %}
+                                {% if bloque %}
+                                    <div class="bg-success text-white w-100 h-100 d-flex align-items-center justify-content-center" 
+                                         style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#modalAgendar"
+                                         onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
+                                        <small>{{ bloque.reservas_bloque.count }} / {{ bloque.capacidad_maxima }}</small>
+                                    </div>
+                                {% else %}
+                                    <div class="text-muted small">--</div>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevoBloque" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0">
+            <form method="post" action="{% url 'crear_bloque_manual' %}">
+                {% csrf_token %}
+                <input type="hidden" name="tipo" value="NUTRICION"> <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">ACTIVAR BLOQUES NUTRICIONALES</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="fw-bold">Fecha</label>
+                        <input type="date" name="dia" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Jornada</label>
+                        <select name="jornada" class="form-select" required>
+                            <option value="manana">Mañana (06:30 - 11:00)</option>
+                            <option value="tarde">Tarde (17:00 - 20:30)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Cupos por Cita (Capacidad)</label>
+                        <input type="number" name="capacidad" class="form-control" value="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success w-100 fw-bold">ACTIVAR DISPONIBILIDAD</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

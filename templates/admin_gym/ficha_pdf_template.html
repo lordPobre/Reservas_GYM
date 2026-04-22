@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha Alumno - {{ alumno.nombre_completo }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            font-size: 12px; 
+            color: #222; 
+            line-height: 1.5; 
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 { 
+            font-size: 18px; 
+            text-transform: uppercase; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+        }
+        .fecha-ingreso {
+            text-align: right;
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 15px;
+        }
+        h2 { 
+            font-size: 14px; 
+            background-color: #e9ecef; 
+            padding: 6px; 
+            border: 1px solid #ccc; 
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 10px; 
+        }
+        th, td { 
+            border: 1px solid #aaa; 
+            padding: 8px; 
+            text-align: left; 
+            vertical-align: top; 
+        }
+        th { 
+            background-color: #f8f9fa; 
+            width: 35%; 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>FICHA ASESORÍA<br>“KAME HOUSE HEALTH AND FITNESS GYM”</h1>
+    </div>
+    
+    <div class="fecha-ingreso">FECHA REGISTRO: {{ alumno.fecha_registro|date:"d/m/Y" }}</div>
+
+    <h2>1.- Datos personales</h2>
+    <table>
+        <tr><th>Nombre Completo</th><td>{{ alumno.nombre_completo }}</td></tr>
+        <tr><th>Objetivo Entrenamiento</th><td>{{ alumno.objetivo }}</td></tr>
+        <tr><th>Contacto Telefónico/Whatsapp</th><td>{{ alumno.telefono }}</td></tr>
+        <tr><th>Correo Electrónico</th><td>{{ alumno.correo|default:"-" }}</td></tr>
+        <tr><th>Fecha Nacimiento / Edad</th><td>{{ alumno.fecha_nacimiento|date:"d/m/Y" }} ({{ alumno.edad }} años)</td></tr>
+        <tr><th>Estatura / Peso</th><td>{{ alumno.estatura }} Cms. / {{ alumno.peso }} Kgs.</td></tr>
+        <tr><th>Ocupación o Trabajo</th><td>{{ alumno.ocupacion }}</td></tr>
+    </table>
+
+    <h2>2.- Datos entrenamiento</h2>
+    <table>
+        <tr><th>Días de entrenamiento semanal</th><td>{{ alumno.dias_semanales }}</td></tr>
+        <tr><th>Horario preferente</th><td>{{ alumno.horario_preferente }}</td></tr>
+        <tr><th>Experiencia en entrenamiento</th><td>{{ alumno.experiencia }}</td></tr>
+        <tr><th>Deporte previo/actual</th><td>{{ alumno.deporte_previo|default:"Ninguno" }}</td></tr>
+    </table>
+
+    <h2>3.- Nutrición y salud</h2>
+    <table>
+        <tr><th>Comida favorita</th><td>{{ alumno.comida_favorita|default:"-" }}</td></tr>
+        <tr><th>Intolerancias / No puede comer</th><td>{{ alumno.intolerancias|default:"Ninguna" }}</td></tr>
+        <tr><th>Alimentos diarios acomodados</th><td>{{ alumno.alimentos_diarios|default:"-" }}</td></tr>
+        <tr><th>¿Consume medicación?</th><td>{{ alumno.medicacion|default:"Ninguna" }}</td></tr>
+        <tr><th>Drogas (Habitual o social)</th><td>{{ alumno.drogas|default:"Ninguna" }}</td></tr>
+        <tr><th>Lesiones / Tratamientos</th><td>{{ alumno.lesiones|default:"Ninguna" }}</td></tr>
+        <tr><th>Enfermedades familiares</th><td>{{ alumno.enfermedades_familiares|default:"Ninguna" }}</td></tr>
+        <tr><th>Hora despertar / Hora dormir</th><td>{{ alumno.hora_despertar|time:"H:i"|default:"-" }} / {{ alumno.hora_dormir|time:"H:i"|default:"-" }}</td></tr>
+        <tr><th>Suplementos consumidos</th><td>{{ alumno.suplementos|default:"Ninguno" }}</td></tr>
+        <tr><th>Comentario adicional</th><td>{{ alumno.comentario_adicional|default:"-" }}</td></tr>
+    </table>
+
+    <h2>Recordatorio 24 horas (Dieta Habitual)</h2>
+    <table>
+        <tr><th>¿Hace cuánto se alimenta así?</th><td>{{ alumno.dieta_tiempo|default:"-" }}</td></tr>
+        <tr><th>Desayuno</th><td>{{ alumno.comida_desayuno|default:"-" }}</td></tr>
+        <tr><th>Snack o Colación 1</th><td>{{ alumno.comida_snack1|default:"-" }}</td></tr>
+        <tr><th>Almuerzo</th><td>{{ alumno.comida_almuerzo|default:"-" }}</td></tr>
+        <tr><th>Once o Colación 2</th><td>{{ alumno.comida_once|default:"-" }}</td></tr>
+        <tr><th>Cena</th><td>{{ alumno.comida_cena|default:"-" }}</td></tr>
+    </table>
+
+</body>
+</html>

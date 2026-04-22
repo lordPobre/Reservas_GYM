@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Reporte Analítico</h2>
+        <button class="btn btn-outline-secondary shadow-sm" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i>Imprimir Reporte
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-primary text-white h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase fw-bold opacity-75">Total Asistencias del Mes</h6>
+                    <h2 class="display-5 fw-bold mb-0">{{ total_reservas_mes }}</h2>
+                    <p class="mb-0 mt-2 small"><i class="bi bi-calendar-check me-1"></i> Periodo: {{ mes_actual }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-success text-white h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase fw-bold opacity-75">Promedio Diario</h6>
+                    <h2 class="display-5 fw-bold mb-0">{{ promedio_diario }}</h2>
+                    <p class="mb-0 mt-2 small"><i class="bi bi-people me-1"></i> Alumnos promedio por día activo</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-dark text-white h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase fw-bold opacity-75">Días con Actividad</h6>
+                    <h2 class="display-5 fw-bold mb-0">{{ datos_tabla|length }}</h2>
+                    <p class="mb-0 mt-2 small"><i class="bi bi-activity me-1"></i> Días con al menos 1 reserva</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold m-0 text-secondary">Flujo de Asistencia Diaria</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div style="height: 400px; width: 100%;">
+                        <canvas id="graficoReporte"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold m-0 text-secondary">Desglose Diario</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-hover table-striped align-middle m-0 text-center">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Asistencias</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in datos_tabla %}
+                                <tr>
+                                    <td class="fw-bold text-secondary">{{ item.fecha|date:"l, d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">{{ item.total }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-muted py-4">No hay registros de reservas.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const fechas = {{ fechas_grafico|safe }};
+        const totales = {{ totales_grafico|safe }};
+
+        const ctx = document.getElementById('graficoReporte').getContext('2d');
+        
+        if (fechas.length === 0) {
+            document.getElementById('graficoReporte').style.display = 'none';
+            ctx.canvas.parentNode.innerHTML = '<div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted"><i class="bi bi-bar-chart text-light" style="font-size: 5rem;"></i><h5 class="mt-3">Sin datos para graficar</h5><p>Comienza a registrar asistencias para ver el gráfico.</p></div>';
+            return;
+        }
+
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(13, 110, 253, 0.8)'); 
+        gradient.addColorStop(1, 'rgba(13, 110, 253, 0.2)');
+
+        new Chart(ctx, {
+            type: 'line', 
+            data: {
+                labels: fechas,
+                datasets: [{
+                    label: 'Alumnos agendados',
+                    data: totales,
+                    backgroundColor: gradient,
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: 'rgba(13, 110, 253, 1)',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: true,
+                    tension: 0.3 // Curvas suaves
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        padding: 10,
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 14, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { borderDash: [5, 5] } 
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

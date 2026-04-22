@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* ESTILOS MODERNOS UI/UX */
+    .modern-card {
+        border: none;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .modern-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 32px rgba(149, 157, 165, 0.2);
+    }
+    .text-gradient {
+        background: linear-gradient(45deg, #FF512F, #DD2476); /* Gradiente vibrante */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    .clock-widget {
+        background: linear-gradient(135deg, #111 0%, #222 100%);
+        color: #00ffcc; /* Verde neón tipo terminal/hacker */
+        border-radius: 16px;
+        border: 1px solid #333;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    .weather-widget {
+        background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); /* Tonos Kame House */
+        color: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(241, 39, 17, 0.3);
+    }
+    .list-item-modern {
+        border-radius: 10px;
+        transition: background 0.2s;
+        border-left: 4px solid transparent;
+    }
+    .list-item-modern:hover {
+        background: #f8f9fa;
+    }
+    .border-entrenamiento { border-left-color: #0d6efd; }
+    .border-nutricion { border-left-color: #198754; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-5 mb-1">¡Hola, <span class="text-gradient">{{ user.username|capfirst }}</span>!</h1>
+            <p class="text-muted fs-5">Bienvenido al centro de mando de <strong>Kamehouse Gym</strong>.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="clock-widget p-3 d-inline-block text-center w-100">
+                <h2 id="reloj" class="mb-0 fw-bold" style="letter-spacing: 2px;">00:00:00</h2>
+                <div class="text-uppercase small opacity-75 mt-1">{{ hoy|date:"l d \d\e F" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row gap-4 gap-md-0">
+        <div class="col-md-8">
+            <div class="card modern-card h-100">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-lightning-charge-fill text-warning me-2"></i>ASISTENCIA DE HOY
+                    </h5>
+                </div>
+                <div class="card-body px-4">
+                    <div class="row">
+                        <div class="col-md-6 border-end-md">
+                            <h6 class="text-primary fw-bold mb-3 small text-uppercase">Área Entrenamiento</h6>
+                            <div class="d-flex flex-column gap-2">
+                                {% for bloque in entrenamientos %}
+                                    {% for reserva in bloque.reservas_bloque.all %}
+                                    <div class="d-flex justify-content-between align-items-center p-2 border list-item-modern border-entrenamiento">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            <span class="small fw-semibold text-dark">{{ reserva.alumno.nombre_completo }}</span>
+                                        </div>
+                                        <span class="badge bg-light text-primary border">{{ bloque.inicio|time:"H:i" }}</span>
+                                    </div>
+                                    {% endfor %}
+                                {% empty %}
+                                    <div class="text-center py-4 text-muted bg-light rounded-3 border border-dashed">
+                                        <i class="bi bi-emoji-sunglasses fs-3 d-block mb-2"></i>
+                                        <small>Pista libre por ahora</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mt-4 mt-md-0">
+                            <h6 class="text-success fw-bold mb-3 small text-uppercase">Área Nutrición</h6>
+                            <div class="d-flex flex-column gap-2">
+                                {% for bloque in nutricion %}
+                                    {% for reserva in bloque.reservas_bloque.all %}
+                                    <div class="d-flex justify-content-between align-items-center p-2 border list-item-modern border-nutricion">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-apple"></i>
+                                            </div>
+                                            <span class="small fw-semibold text-dark">{{ reserva.alumno.nombre_completo }}</span>
+                                        </div>
+                                        <span class="badge bg-light text-success border">{{ bloque.inicio|time:"H:i" }}</span>
+                                    </div>
+                                    {% endfor %}
+                                {% empty %}
+                                    <div class="text-center py-4 text-muted bg-light rounded-3 border border-dashed">
+                                        <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
+                                        <small>Sin consultas agendadas</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="weather-widget modern-card p-4 text-center d-flex flex-column justify-content-center" style="min-height: 200px;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-start">
+                        <h5 class="fw-bold mb-0">Quintero</h5>
+                        <small class="opacity-75">Región de Valparaíso</small>
+                    </div>
+                    <i id="clima-icon" class="bi bi-hourglass-split fs-1"></i>
+                </div>
+                <div class="text-start mt-3">
+                    <div class="display-3 fw-bold" id="clima-grados">--°</div>
+                    <p class="mb-0 fw-semibold fs-5" id="clima-desc">Consultando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // RELOJ
+    function actualizarReloj() {
+        const ahora = new Date();
+        const horas = String(ahora.getHours()).padStart(2, '0');
+        const minutos = String(ahora.getMinutes()).padStart(2, '0');
+        const segundos = String(ahora.getSeconds()).padStart(2, '0');
+        document.getElementById('reloj').textContent = `${horas}:${minutos}:${segundos}`;
+    }
+    setInterval(actualizarReloj, 1000);
+    actualizarReloj();
+
+    // CLIMA OPEN-METEO
+    document.addEventListener("DOMContentLoaded", function() {
+        const lat = -32.7833;
+        const lon = -71.5333;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const temp = Math.round(data.current_weather.temperature);
+                const code = data.current_weather.weathercode;
+                
+                document.getElementById('clima-grados').innerText = `${temp}°`;
+                
+                let icon = 'bi-cloud-sun';
+                let desc = 'Condiciones normales';
+                
+                if (code === 0) { icon = 'bi-sun'; desc = 'Cielo Despejado'; }
+                else if (code >= 1 && code <= 3) { icon = 'bi-cloud-sun'; desc = 'Nubosidad Parcial'; }
+                else if (code >= 45 && code <= 48) { icon = 'bi-cloud-haze'; desc = 'Neblina Costera'; }
+                else if (code >= 51 && code <= 67) { icon = 'bi-cloud-rain'; desc = 'Lluvia Ligera'; }
+                else if (code >= 80 && code <= 82) { icon = 'bi-cloud-showers-heavy'; desc = 'Chubascos'; }
+
+                document.getElementById('clima-icon').className = `bi ${icon} fs-1`;
+                document.getElementById('clima-desc').innerText = desc;
+            })
+            .catch(error => {
+                document.getElementById('clima-desc').innerText = 'Off-line';
+                document.getElementById('clima-icon').className = 'bi bi-cloud-slash fs-1';
+            });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamehouse Gym - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { min-height: 100vh; background: #212529; color: white; }
+        .nav-link { color: #adb5bd; }
+        .nav-link:hover, .nav-link.active { color: white; background: #343a40; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <nav class="col-md-2 d-none d-md-block sidebar p-3 position-relative" style="min-height: 100vh;">
+            
+            <div>
+                <h3 class="text-center mb-4 fw-bold">Kamehouse Gym</h3>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
+                            <i class="bi bi-house-door me-2"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_admin' %}active{% endif %}" href="{% url 'dashboard_admin' %}">
+                            <i class="bi bi-calendar-check me-2"></i> Reserva Entrenamiento
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'reserva_nutricional' %}active{% endif %}" href="{% url 'reserva_nutricional' %}">
+                            <i class="bi bi-apple me-2"></i> Reserva Nutricional
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'calendario_semanal' %}active{% endif %}" href="{% url 'calendario_semanal' %}">
+                            <i class="bi bi-grid-3x3-gap me-2"></i> Calendario Semanal
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'lista_alumnos' %}active{% endif %}" href="{% url 'lista_alumnos' %}">
+                            <i class="bi bi-people me-2"></i> Alumnos
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'reportes_admin' %}active{% endif %}" href="{% url 'reportes_admin' %}">
+                            <i class="bi bi-bar-chart-line me-2"></i> Reportes
+                        </a>
+                    </li>
+                </ul>
+            </div>
+                
+            <div class="position-absolute bottom-0 start-0 w-100 px-3 pb-4">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <hr class="text-secondary">
+                    </li>
+                    <li class="nav-item mb-1">
+                        <a class="nav-link text-danger" href="/admin/" target="_blank">
+                            <i class="bi bi-gear me-2"></i> Panel Técnico
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form method="post" action="{% url 'logout' %}" class="d-inline w-100">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link text-danger bg-transparent border-0 w-100 text-start px-3">
+                                <i class="bi bi-box-arrow-left me-2"></i> Cerrar Sesión
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
+        </nav>
+
+        <main class="col-md-10 ms-sm-auto p-4">
+            {% block content %}
+            {% endblock %}
+        </main>
+        
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function abrirRadioKameHouse() {
+        window.open("{% url 'radio_popup' %}", "RadioKameHouse", "width=400,height=550,menubar=no,toolbar=no,location=no,status=no");
+    }
+</script>
+</body>
+</html>
