@@ -1,22 +1,43 @@
-## 🐢 Kamehouse — Gym Management System
+🏟️ Kamehouse Gym - Sistema de Gestión Pro
 
-**Kamehouse** es una plataforma robusta de gestión de reservas para gimnasios y centros de entrenamiento, diseñada bajo una arquitectura de "control total" desde el panel de administración. El sistema permite a los administradores gestionar bloques horarios, registrar alumnos manualmente y automatizar la comunicación profesional con los clientes.
+Kamehouse Gym es una solución "Full-Stack" desarrollada para la administración moderna de centros deportivos. No es solo una agenda; es una estación de mando que integra datos meteorológicos, música y gestión administrativa en una interfaz inspirada en la estética de Next.js.
+⚡ Características Destacadas
+🚀 Dashboard "Estación de Mando"
 
-Este proyecto forma parte del ecosistema de **Perseus Technology**.
+    Contexto Total: Visualiza los alumnos agendados para el día actual.
 
-## 🚀 Características Principales
+    Smart Widgets: * ☁️ Clima en tiempo real (Quintero, Región de Valparaíso) vía Open-Meteo.
 
-- **Monitor de Clases (Dashboard):** Integración de `FullCalendar.js` en el inicio del administrador para una visualización panorámica de la agenda semanal.
-- **Gestión de Cupos:** Lógica de negocio centralizada en `services.py` que controla la capacidad máxima por bloque y evita sobrecupos.
-- **Notificaciones Automatizadas:** Envío de correos electrónicos de confirmación con diseño HTML personalizado y archivos adjuntos de calendario (`.ics`) para sincronización con Google Calendar, Apple y Outlook.
-- **Interfaz Administrativa Pro:** - Modo Claro/Oscuro dinámico con persistencia en `localStorage`.
-    - Formularios de reserva optimizados (UI/UX) con diseño industrial.
-    - Acciones rápidas para creación de reservas desde el monitor principal.
-- **Seguridad y Control:** Acceso restringido mediante el sistema de autenticación nativo de Django (`staff_only`).
+        🕒 Reloj digital dinámico de alta precisión.
 
-## 🛠️ Stack Tecnológico
+    Kame House Radio: Integración con Spotify para control de ambiente musical.
 
-- **Backend:** Python 3.x, Django 5.x.
-- **Frontend Admin:** JavaScript (ES6+), FullCalendar 6.1, CSS3 (Variables dinámicas).
-- **Base de Datos:** SQLite (Desarrollo) / PostgreSQL (Producción).
-- **Utilidades:** `icalendar` para generación de eventos, `django-tailwind` para estilos frontend.
+📅 Agenda Inteligente
+
+    Gestión Dual: Flujos separados para Entrenamiento y Nutrición.
+
+    Navegación Temporal: Control total de semanas pasadas y futuras.
+
+    Vista Semanal: Calendario dividido por jornadas (Mañana/Tarde) para una lectura rápida.
+
+📋 Administración de Alumnos
+
+    Fichas Técnicas: Perfiles detallados con historial de asistencia.
+
+    Reportabilidad: Generación de reportes y fichas en PDF listas para impresión.
+
+🛠️ Stack Tecnológico
+Tecnología	Uso
+Python / Django	Lógica de negocio y servidor.
+Bootstrap 5 / CSS3	Diseño UI/UX moderno y responsivo.
+JavaScript (Vanilla)	Widgets dinámicos y manejo de APIs.
+Open-Meteo API	Datos meteorológicos costeros.
+Spotify Embed	Streaming de audio integrado.
+
+👤 Autor
+
+Desarrollado por Perseus Technology bajo la dirección de:
+
+    Ingeniería: IT Developer & Sound Engineer.
+
+    Misión: Digitalizar la pasión por el deporte con herramientas de ingeniería de software.
