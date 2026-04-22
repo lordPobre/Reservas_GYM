@@ -1,6 +1,4 @@
-import os
-
-readme_content = """# 🐢 Kamehouse — Gym Management System
+"""# 🐢 Kamehouse — Gym Management System
 
 **Kamehouse** es una plataforma robusta de gestión de reservas para gimnasios y centros de entrenamiento, diseñada bajo una arquitectura de "control total" desde el panel de administración. El sistema permite a los administradores gestionar bloques horarios, registrar alumnos manualmente y automatizar la comunicación profesional con los clientes.
 
