@@ -18,6 +18,7 @@ staticfiles/
 .idea/
 .DS_Store
 *.log
+ngrok.exe
 
 # Estáticos de Tailwind (si usas la carpeta theme)
 theme/node_modules/
