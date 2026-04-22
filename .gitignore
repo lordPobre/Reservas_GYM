@@ -2,16 +2,22 @@
 __pycache__/
 *.py[cod]
 *$py.class
-env/
 venv/
-.env
+.venv/
+env/
 
 # Django
 db.sqlite3
+db.sqlite3-journal
 media/
 staticfiles/
-ngrok.exe
+.env
 
-# IDEs
+# IDEs y Sistema
 .vscode/
 .idea/
+.DS_Store
+*.log
+
+# Estáticos de Tailwind (si usas la carpeta theme)
+theme/node_modules/
