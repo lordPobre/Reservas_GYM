@@ -29,8 +29,8 @@
                         </a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_admin' %}active{% endif %}" href="{% url 'dashboard_admin' %}">
-                            <i class="bi bi-calendar-check me-2"></i> Reserva Entrenamiento
+                        <a class="nav-link {% if request.resolver_match.url_name == 'calendario_semanal' %}active{% endif %}" href="{% url 'calendario_semanal' %}">
+                            <i class="bi bi-grid-3x3-gap me-2"></i> Calendario de Reserva
                         </a>
                     </li>
                     <li class="nav-item mb-2">
@@ -38,14 +38,14 @@
                             <i class="bi bi-apple me-2"></i> Reserva Nutricional
                         </a>
                     </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'calendario_semanal' %}active{% endif %}" href="{% url 'calendario_semanal' %}">
-                            <i class="bi bi-grid-3x3-gap me-2"></i> Calendario Semanal
+                    <li>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'reserva_kinesiologica' %}active{% endif %}" href="{% url 'reserva_kinesiologica' %}">
+                            <i class="bi bi-heart-pulse me-2 text-primary"></i> Reserva Kinesiológica
                         </a>
                     </li>
                     <li class="nav-item mb-2">
                         <a class="nav-link {% if request.resolver_match.url_name == 'lista_alumnos' %}active{% endif %}" href="{% url 'lista_alumnos' %}">
-                            <i class="bi bi-people me-2"></i> Alumnos
+                            <i class="bi bi-people me-2"></i> Ficha Alumnos
                         </a>
                     </li>
                     <li class="nav-item mb-2">

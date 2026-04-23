@@ -23,9 +23,27 @@ class HorarioBloque(models.Model):
         return f"{self.dia} | {self.inicio.strftime('%H:%M')} - {self.fin.strftime('%H:%M')}"
 
 class FichaAlumno(models.Model):
+    PLANES_CHOICES = [
+        ('4_CLASES', '4 Clases ($30.000) - 1 vez x semana'),
+        ('8_CLASES', '8 Clases ($40.000) - 2 veces x semana'),
+        ('12_CLASES', '12 Clases ($50.000) - 3 veces x semana'),
+        ('16_CLASES', '16 Clases ($55.000) - 4 veces x semana'),
+        ('FULL_20', 'FULL 20 ($60.000) - 5 veces x semana'),
+        ('PASE_DIARIO', 'Pase Diario ($8.000)'),
+        ('SOLO_CLINICA', 'Solo Servicios Clínicos (Sin Gym)'), # NUEVO
+    ]
+
     usuario = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='ficha')
     fecha_registro = models.DateField(auto_now_add=True)
     nombre_completo = models.CharField(max_length=200)
+    plan = models.CharField(
+        max_length=20, 
+        choices=PLANES_CHOICES, 
+        default='4_CLASES'
+    )
+    plan_nutricional = models.BooleanField('Habilitar Nutrición', default=False)
+    plan_kinesiologia = models.BooleanField('Habilitar Kinesiología', default=False)
+    fecha_nacimiento = models.DateField(null=True, blank=True)
     objetivo = models.TextField(verbose_name="Objetivo entrenamiento", help_text="disminuir peso corporal, disminuir grasa, aumentar masa muscular etc")
     telefono = models.CharField(max_length=20, verbose_name="Contacto telefónico/whatsapp")
     correo = models.EmailField(blank=True, null=True, verbose_name="Correo electrónico")
@@ -54,6 +72,7 @@ class FichaAlumno(models.Model):
     hora_dormir = models.TimeField(verbose_name="¿a qué hora usted generalmente se duerme o acuesta?", null=True, blank=True)
     suplementos = models.TextField(verbose_name="Suplementos que ha consumido, tiempo y administración", blank=True)
     comentario_adicional = models.TextField(verbose_name="Comentario adicional", blank=True)
+    
 
     class Meta:
         verbose_name = "Ficha de Alumno"

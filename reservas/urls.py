@@ -10,6 +10,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard_admin, name='dashboard_admin'),
     path('nutricion/', views.dashboard_nutricion, name='reserva_nutricional'),
     path('calendario-semanal/', views.calendario_semanal, name='calendario_semanal'),
+    path('kinesiologia/', views.dashboard_kinesiologia, name='reserva_kinesiologica'),
     path('alumnos/', views.lista_alumnos, name='lista_alumnos'),
     path('alumnos/<int:pk>/', views.detalle_alumno, name='detalle_alumno'),
     path('alumnos/<int:pk>/editar/', views.editar_alumno, name='editar_alumno'),
@@ -19,5 +20,7 @@ urlpatterns = [
     path('bloque/<int:bloque_id>/detalle/', views.detalle_bloque_json, name='detalle_bloque_json'),
     path('agendar-reserva/', views.agendar_reserva, name='agendar_reserva'),
     path('obtener-bloques/', views.obtener_bloques_disponibles, name='obtener_bloques'),
+    
+    # --- REPORTES ---
     path('reportes/', views.reportes_admin, name='reportes_admin'),
 ]

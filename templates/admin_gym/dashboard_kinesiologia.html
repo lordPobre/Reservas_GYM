@@ -13,10 +13,10 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-        <h2 class="fw-bold m-0 text-success"><i class="bi bi-apple me-2"></i>RESERVA NUTRICIONAL</h2>
+        <h2 class="fw-bold m-0 text-primary"><i class="bi bi-heart-pulse me-2"></i>RESERVA KINESIOLÓGICA</h2>
         
         <div class="d-flex gap-3 align-items-center">
-            <button class="btn btn-outline-success fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoBloqueNutri">
+            <button class="btn btn-outline-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoBloqueKine">
                 <i class="bi bi-clock-history me-2"></i>CREAR BLOQUES
             </button>
 
@@ -27,7 +27,6 @@
             </div>
         </div>
     </div>
-
     <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="fw-bold m-0">
@@ -45,20 +44,19 @@
     </div>
 </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold small text-uppercase">Seleccionar Paciente/Alumno</label>
-        <select name="alumno_id" class="form-select form-select-lg border-primary shadow-sm" required>
-            <option value="" disabled selected>Buscar alumno habilitado...</option>
-            {% for alumno in alumnos_registrados %}
-                <option value="{{ alumno.id }}">{{ alumno.nombre_completo }}</option>
-            {% endfor %}
-        </select>
-        <div class="form-text text-primary">
-            <i class="bi bi-info-circle me-1"></i> Solo aparecen alumnos con el servicio clínico activo en su ficha.
-        </div>
+<div class="mb-3">
+    <label class="form-label fw-bold small text-uppercase">Seleccionar Paciente/Alumno</label>
+    <select name="alumno_id" class="form-select form-select-lg border-primary shadow-sm" required>
+        <option value="" disabled selected>Buscar alumno habilitado...</option>
+        {% for alumno in alumnos_registrados %}
+            <option value="{{ alumno.id }}">{{ alumno.nombre_completo }}</option>
+        {% endfor %}
+    </select>
+    <div class="form-text text-primary">
+        <i class="bi bi-info-circle me-1"></i> Solo aparecen alumnos con el servicio clínico activo en su ficha.
     </div>
-
-    <div class="card border-0 shadow-sm overflow-hidden border-top border-success border-4">
+</div>
+    <div class="card border-0 shadow-sm overflow-hidden border-top border-primary border-4">
         <div class="table-responsive">
             <table class="table table-bordered table-fixed text-center m-0 align-middle">
                 <thead class="table-dark">
@@ -84,32 +82,30 @@
                             {% for dia in dias_semana %}
                                 <td class="p-0 reserva-cell">
                                     {% get_bloque bloques_semana dia time_slot as bloque %}
-                                    
                                     {% if bloque %}
                                         {% with reservas=bloque.reservas_bloque.all ocupacion=bloque.reservas_bloque.count %}
-                                            <div class="w-100 h-100 p-2 {% if ocupacion >= bloque.capacidad_maxima %}bg-danger bg-opacity-10 border-danger{% else %}bg-info bg-opacity-10 border-info{% endif %} border rounded transition-hover"
+                                            <div class="w-100 h-100 p-2 {% if ocupacion >= bloque.capacidad_maxima %}bg-danger bg-opacity-10 border-danger{% else %}bg-primary bg-opacity-10 border-primary{% endif %} border rounded transition-hover"
                                                  style="min-height: 80px; text-align: left;"
                                                  data-bs-toggle="modal" 
-                                                 data-bs-target="#modalAgendarNutri"
+                                                 data-bs-target="#modalAgendarKine"
                                                  onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
                                                 
                                                 <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 mb-2 pb-1">
-                                                    <span class="fw-bold {% if ocupacion >= bloque.capacidad_maxima %}text-danger{% else %}text-info{% endif %}" style="font-size: 0.65rem;">
-                                                        {{ ocupacion }}/{{ bloque.capacidad_maxima }} CUPOS
+                                                    <span class="fw-bold {% if ocupacion >= bloque.capacidad_maxima %}text-danger{% else %}text-primary{% endif %}" style="font-size: 0.65rem;">
+                                                        {{ ocupacion }}/{{ bloque.capacidad_maxima }} PACIENTES
                                                     </span>
                                                     <i class="bi bi-plus-circle text-muted" style="font-size: 0.7rem;"></i>
                                                 </div>
 
                                                 <div class="d-flex flex-column gap-1">
                                                     {% for reserva in reservas %}
-                                                        <div class="text-dark text-truncate" style="font-size: 0.75rem; line-height: 1.2; font-weight: 500;" title="{{ reserva.alumno.nombre_completo }}">
+                                                        <div class="text-dark text-truncate" style="font-size: 0.75rem; line-height: 1.2; font-weight: 500;">
                                                             • {{ reserva.alumno.nombre_completo|truncatechars:18 }}
                                                         </div>
                                                     {% empty %}
                                                         <div class="text-muted fst-italic text-center mt-2" style="font-size: 0.7rem;">Bloque libre</div>
                                                     {% endfor %}
                                                 </div>
-                                                
                                             </div>
                                         {% endwith %}
                                     {% else %}
@@ -125,65 +121,60 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalNuevoBloqueNutri" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalNuevoBloqueKine" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content border-0 shadow">
         <form method="post" action="{% url 'crear_bloque_manual' %}">
           {% csrf_token %}
-          <input type="hidden" name="tipo" value="NUTRICION">
-          
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>ACTIVAR JORNADA NUTRICIÓN</h5>
+          <input type="hidden" name="tipo" value="KINESIOLOGIA">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">ACTIVAR JORNADA KINESIOLOGÍA</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
               <div class="mb-3">
-                  <label class="fw-bold text-secondary">1. Fecha a Activar</label>
-                  <input type="date" name="dia" class="form-control form-control-lg" required>
+                  <label class="fw-bold">Fecha a Activar</label>
+                  <input type="date" name="dia" class="form-control" required>
               </div>
               <div class="mb-3">
-                  <label class="fw-bold text-secondary">2. Seleccionar Jornada</label>
-                  <select name="jornada" class="form-select form-select-lg" required>
-                      <option value="" disabled selected>-- Elegir Mañana o Tarde --</option>
+                  <label class="fw-bold">Jornada</label>
+                  <select name="jornada" class="form-select" required>
                       <option value="manana">☀️ Mañana (06:30 a 12:00)</option>
                       <option value="tarde">🌙 Tarde (13:00 a 21:30)</option>
                   </select>
               </div>
               <div class="mb-3">
-                  <label class="fw-bold text-secondary">3. Cupos por Bloque</label>
-                  <input type="number" name="capacidad" class="form-control form-control-lg" min="1" max="50" value="1" required>
-                  <small class="text-muted">Generalmente nutrición es 1 a 1.</small>
+                  <label class="fw-bold">Cupos (Pacientes por hora)</label>
+                  <input type="number" name="capacidad" class="form-control" min="1" max="10" value="1" required>
               </div>
           </div>
           <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">GENERAR BLOQUES</button>
+            <button type="submit" class="btn btn-primary px-4 fw-bold">GENERAR BLOQUES</button>
           </div>
         </form>
       </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalAgendarNutri" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalAgendarKine" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content border-0 shadow">
           <div class="modal-header bg-dark text-white">
-            <h5 class="modal-title"><i class="bi bi-apple me-2"></i>Detalle y Cita Nutricional</h5>
+            <h5 class="modal-title">Detalle de Sesión</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
-              <h6 class="text-success fw-bold mb-3 border-bottom pb-2" id="textoBloqueInfo"></h6>
-              <p class="fw-bold mb-2 small text-uppercase">Paciente en este bloque:</p>
+              <h6 class="text-primary fw-bold mb-3 border-bottom pb-2" id="textoBloqueInfo"></h6>
+              <p class="fw-bold mb-2 small text-uppercase">Paciente asignado:</p>
               <div id="contenedorAsistentes" class="mb-4"></div>
               
               <div id="seccionAgregarReserva">
                   <form method="post" action="{% url 'agendar_reserva' %}">
                       {% csrf_token %}
                       <input type="hidden" name="bloque_id" id="inputBloqueId">
+                      <input type="hidden" name="redirect_to" value="reserva_kinesiologica">
                       
-                      <input type="hidden" name="redirect_to" value="reserva_nutricional">
-                      
-                      <label class="fw-bold mb-2 text-success small">AÑADIR PACIENTE:</label>
+                      <label class="fw-bold mb-2 text-primary small">AÑADIR PACIENTE:</label>
                       <div class="input-group">
                           <select name="alumno_id" class="form-select" required>
                               <option value="" disabled selected>-- Buscar Paciente --</option>
@@ -191,7 +182,7 @@
                                   <option value="{{ alu.id }}">{{ alu.nombre_completo }}</option>
                               {% endfor %}
                           </select>
-                          <button type="submit" class="btn btn-success">AGENDAR CITA</button>
+                          <button type="submit" class="btn btn-primary">AGENDAR</button>
                       </div>
                   </form>
               </div>
@@ -205,7 +196,7 @@
         document.getElementById('inputBloqueId').value = bloqueId;
         document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
         const contenedor = document.getElementById('contenedorAsistentes');
-        contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-success"></div></div>';
+        contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
 
         fetch(`/gym/bloque/${bloqueId}/detalle/`)
             .then(response => response.json())
@@ -213,7 +204,7 @@
                 let html = '<div class="list-group list-group-flush border rounded mb-3">';
                 if(data.asistentes.length > 0) {
                     data.asistentes.forEach(a => {
-                        html += `<div class="list-group-item py-2 small d-flex justify-content-between border-start border-success border-3">
+                        html += `<div class="list-group-item py-2 small d-flex justify-content-between border-start border-primary border-3">
                                     <span class="fw-bold">${a.nombre}</span>
                                     <span class="text-muted"><i class="bi bi-telephone-fill me-1"></i> ${a.telefono}</span>
                                  </div>`;

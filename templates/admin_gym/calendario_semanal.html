@@ -1,214 +1,283 @@
 {% extends 'base.html' %}
-{% load gym_tags %}
+{% load static %}
+{% load gym_tags %} 
 
 {% block content %}
 <style>
-    /* ESTILOS MODERNOS UI/UX PARA CALENDARIO */
-    .modern-card {
-        border: none;
-        border-radius: 16px;
-        background: #ffffff;
-        box-shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
-    }
-    .text-gradient {
-        background: linear-gradient(45deg, #FF512F, #DD2476);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-    }
+    /* Estilos del Calendario */
+    .reserva-cell { cursor: pointer; transition: all 0.2s; vertical-align: top; }
+    .reserva-cell:hover { filter: brightness(0.9); transform: scale(1.02); }
+    .table-fixed { table-layout: fixed; }
+    .sticky-col { position: sticky; left: 0; background-color: #f8f9fa !important; z-index: 5; border-right: 2px solid #dee2e6 !important; }
+    .transition-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+
+    /* Estilos para el Formulario del Modal */
+    #modalAlumno p { margin-bottom: 1rem; display: block; }
+    #modalAlumno label { font-weight: 600; margin-bottom: 0.3rem; color: #495057; }
     
-    /* Contenedor de la tabla para bordes redondeados perfectos */
-    .calendario-wrapper {
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid #eaeaea;
-    }
-    .calendario-table {
-        margin: 0;
-        border-collapse: collapse;
-    }
-    .calendario-table th { 
-        background-color: #111; 
-        color: white; 
-        min-width: 150px; 
-        border: none;
-        padding: 12px;
-    }
-    .calendario-table td {
-        border-color: #eaeaea;
-    }
-    .col-hora { 
-        width: 80px; 
-        background-color: #f8f9fa; 
-        font-weight: 700; 
-        color: #555;
-        border-right: 1px solid #eaeaea;
-    }
-    .slot-calendario {
-        min-height: 110px;
-        padding: 8px;
-        font-size: 0.85rem;
-        transition: background 0.2s;
-    }
-    .slot-calendario:hover {
-        background-color: #fafafa;
-    }
-    
-    /* Estilos Neumórficos para los tags de los alumnos */
-    .alumno-tag {
-        background-color: #eef2ff;
-        border-left: 4px solid #0d6efd;
-        padding: 4px 10px;
-        margin-bottom: 6px;
-        border-radius: 6px;
-        color: #2563eb;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.05);
-        transition: transform 0.2s;
-    }
-    .alumno-tag:hover {
-        transform: translateX(2px);
-    }
-    .tag-nutricion { 
-        border-left-color: #198754; 
-        background-color: #ecfdf5; 
-        color: #059669; 
-        box-shadow: 0 2px 4px rgba(25, 135, 84, 0.05);
-    }
-    
-    .cupos-badge {
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 12px;
-        background: #f1f3f5;
-        color: #6c757d;
-        display: inline-block;
+    /* CORRECCIÓN CSS: Excluimos checkboxes para no deformar los switches */
+    #modalAlumno input:not([type="checkbox"]), 
+    #modalAlumno select, 
+    #modalAlumno textarea {
+        display: block; width: 100%; padding: 0.375rem 0.75rem;
+        font-size: 1rem; font-weight: 400; line-height: 1.5; color: #212529;
+        background-color: #fff; border: 1px solid #ced4da; border-radius: 0.375rem;
     }
 </style>
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-end mb-4 px-2">
-        <div>
-            <h2 class="fw-bold m-0"><span class="text-gradient">CALENDARIO</span> DE ASISTENCIA</h2>
-            <p class="text-muted fw-semibold m-0 mt-1">Visión panorámica de las reservas</p>
-        </div>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <h2 class="fw-bold m-0"><i class="bi bi-calendar3 me-2"></i>CALENDARIO SEMANAL</h2>
         
-        <div class="d-flex align-items-center gap-2">
-            <a href="?fecha={{ semana_anterior }}" class="btn btn-light border shadow-sm rounded-circle d-flex justify-content-center align-items-center modern-card" style="width: 45px; height: 45px;" title="Semana Anterior">
-                <i class="bi bi-chevron-left fw-bold text-dark"></i>
-            </a>
+        <div class="d-flex gap-3 align-items-center">
+            <button class="btn btn-outline-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoBloque">
+                <i class="bi bi-clock-history me-2"></i>CREAR BLOQUES
+            </button>
             
-            <div class="bg-white px-4 py-2 rounded-pill shadow-sm border fw-bold text-dark text-center" style="min-width: 220px;">
-                <i class="bi bi-calendar-range text-primary me-2"></i>
-                {{ lunes|date:"d M" }} - {{ domingo|date:"d M, Y" }}
+            <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAlumno">
+                <i class="bi bi-person-plus-fill me-2"></i>NUEVO ALUMNO
+            </button>
+
+            <div class="btn-group shadow-sm ms-2">
+                <a href="?fecha={{ semana_anterior }}" class="btn btn-outline-dark"><i class="bi bi-chevron-left"></i></a>
+                <button class="btn btn-dark fw-bold">SEMANA ACTUAL</button>
+                <a href="?fecha={{ semana_siguiente }}" class="btn btn-outline-dark"><i class="bi bi-chevron-right"></i></a>
             </div>
-            
-            <a href="?fecha={{ semana_siguiente }}" class="btn btn-light border shadow-sm rounded-circle d-flex justify-content-center align-items-center modern-card" style="width: 45px; height: 45px;" title="Semana Siguiente">
-                <i class="bi bi-chevron-right fw-bold text-dark"></i>
-            </a>
         </div>
     </div>
 
-    <div class="modern-card p-4">
-        <div class="calendario-wrapper">
-            <div class="table-responsive">
-                <table class="table calendario-table">
-                    <thead>
-                        <tr class="text-center">
-                            <th class="col-hora align-middle"><i class="bi bi-clock"></i></th>
-                            {% for dia in dias_semana %}
-                                <th>
-                                    <div class="text-uppercase small opacity-75" style="letter-spacing: 1px;">{{ dia|date:"l" }}</div>
-                                    <div class="fs-5">{{ dia|date:"d M" }}</div>
-                                </th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr style="background-color: #f8f9fa;">
-                            <td colspan="8" class="text-center py-2 text-dark fw-bold text-uppercase border-bottom" style="letter-spacing: 2px; font-size: 0.9rem;">
-                                <i class="bi bi-brightness-alt-high text-warning fs-5 me-2 align-middle"></i> Jornada Mañana
-                            </td>
-                        </tr>
+    <div class="card border-0 shadow-sm overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-bordered table-fixed text-center m-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="sticky-col align-middle" style="width: 100px;">Hora</th>
+                        {% for dia in dias_semana %}
+                            <th class="py-3 align-middle">
+                                <span class="d-block small opacity-75">{{ dia|date:"l"|upper }}</span>
+                                <span class="fs-5">{{ dia|date:"d M" }}</span>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for time_slot in slots_manana|json_script:"slots_dummy"|default:slots_manana %}{% endfor %}
 
-                        {% for time_slot in slots_manana %}
+                    {% for time_slot in slots_manana|add:slots_tarde %}
+                        
+                        {% if time_slot == slots_tarde.0 %}
+                            <tr class="bg-light"><td colspan="8" class="py-2 text-muted small fw-bold text-center">RECESO / CAMBIO DE JORNADA</td></tr>
+                        {% endif %}
+                        
                         <tr>
-                            <td class="text-center align-middle col-hora">{{ time_slot|time:"H:i" }}</td>
+                            <td class="fw-bold sticky-col align-middle">{{ time_slot|time:"H:i" }}</td>
                             {% for dia in dias_semana %}
-                                <td class="p-1 align-top">
+                                <td class="p-0 reserva-cell">
                                     {% get_bloque bloques_semana dia time_slot as bloque %}
-                                    <div class="slot-calendario">
-                                        {% if bloque %}
-                                            {% for reserva in bloque.reservas_bloque.all %}
-                                                <span class="alumno-tag {% if bloque.tipo == 'NUTRICION' %}tag-nutricion{% endif %}" title="{{ reserva.alumno.nombre_completo }}">
-                                                    <i class="bi bi-person-fill small me-1"></i>{{ reserva.alumno.nombre_completo|truncatechars:15 }}
-                                                </span>
-                                            {% empty %}
-                                                <div class="text-center text-muted mt-3 opacity-50 small"><i class="bi bi-dash-lg"></i></div>
-                                            {% endfor %}
-                                            
-                                            {% if bloque.reservas_bloque.count < bloque.capacidad_maxima %}
-                                                <div class="text-center mt-2">
-                                                    <span class="cupos-badge">{{ bloque.reservas_bloque.count }}/{{ bloque.capacidad_maxima }} cupos</span>
+                                    
+                                    {% if bloque %}
+                                        {% with reservas=bloque.reservas_bloque.all ocupacion=bloque.reservas_bloque.count %}
+                                            <div class="w-100 h-100 p-2 {% if ocupacion >= bloque.capacidad_maxima %}bg-danger bg-opacity-10 border-danger{% else %}bg-success bg-opacity-10 border-success{% endif %} border rounded transition-hover"
+                                                 style="min-height: 80px; text-align: left;"
+                                                 data-bs-toggle="modal" 
+                                                 data-bs-target="#modalAgendar"
+                                                 onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
+                                                
+                                                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 mb-2 pb-1">
+                                                    <span class="fw-bold {% if ocupacion >= bloque.capacidad_maxima %}text-danger{% else %}text-success{% endif %}" style="font-size: 0.65rem;">
+                                                        {{ ocupacion }}/{{ bloque.capacidad_maxima }} CUPOS
+                                                    </span>
+                                                    <i class="bi bi-plus-circle text-muted" style="font-size: 0.7rem;"></i>
                                                 </div>
-                                            {% else %}
-                                                <div class="text-center mt-2">
-                                                    <span class="cupos-badge bg-danger text-white">COMPLETO</span>
+
+                                                <div class="d-flex flex-column gap-1">
+                                                    {% for reserva in reservas %}
+                                                        <div class="text-dark text-truncate" style="font-size: 0.75rem; line-height: 1.2; font-weight: 500;" title="{{ reserva.alumno.nombre_completo }}">
+                                                            • {{ reserva.alumno.nombre_completo|truncatechars:18 }}
+                                                        </div>
+                                                    {% empty %}
+                                                        <div class="text-muted fst-italic text-center mt-2" style="font-size: 0.7rem;">Bloque libre</div>
+                                                    {% endfor %}
                                                 </div>
-                                            {% endif %}
-                                        {% endif %}
-                                    </div>
+                                                
+                                            </div>
+                                        {% endwith %}
+                                    {% else %}
+                                        <div class="text-muted opacity-25 d-flex align-items-center justify-content-center" style="min-height: 80px;">--</div>
+                                    {% endif %}
                                 </td>
                             {% endfor %}
                         </tr>
-                        {% endfor %}
-
-                        <tr style="background-color: #f8f9fa;">
-                            <td colspan="8" class="text-center py-2 text-dark fw-bold text-uppercase border-bottom border-top" style="letter-spacing: 2px; font-size: 0.9rem;">
-                                <i class="bi bi-moon-stars text-primary fs-5 me-2 align-middle"></i> Jornada Tarde
-                            </td>
-                        </tr>
-
-                        {% for time_slot in slots_tarde %}
-                        <tr>
-                            <td class="text-center align-middle col-hora">{{ time_slot|time:"H:i" }}</td>
-                            {% for dia in dias_semana %}
-                                <td class="p-1 align-top">
-                                    {% get_bloque bloques_semana dia time_slot as bloque %}
-                                    <div class="slot-calendario">
-                                        {% if bloque %}
-                                            {% for reserva in bloque.reservas_bloque.all %}
-                                                <span class="alumno-tag {% if bloque.tipo == 'NUTRICION' %}tag-nutricion{% endif %}" title="{{ reserva.alumno.nombre_completo }}">
-                                                    <i class="bi bi-person-fill small me-1"></i>{{ reserva.alumno.nombre_completo|truncatechars:15 }}
-                                                </span>
-                                            {% empty %}
-                                                <div class="text-center text-muted mt-3 opacity-50 small"><i class="bi bi-dash-lg"></i></div>
-                                            {% endfor %}
-                                            
-                                            {% if bloque.reservas_bloque.count < bloque.capacidad_maxima %}
-                                                <div class="text-center mt-2">
-                                                    <span class="cupos-badge">{{ bloque.reservas_bloque.count }}/{{ bloque.capacidad_maxima }} cupos</span>
-                                                </div>
-                                            {% else %}
-                                                <div class="text-center mt-2">
-                                                    <span class="cupos-badge bg-danger text-white">COMPLETO</span>
-                                                </div>
-                                            {% endif %}
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalAlumno" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <form method="post" action="{% url 'registrar_alumno' %}">
+                {% csrf_token %}
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold">NUEVA FICHA DE ASESORÍA - KAME HOUSE</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="alert alert-info py-2 small">
+                        <i class="bi bi-info-circle me-2"></i> Completa todos los campos según la ficha de evaluación física.
+                    </div>
+                    
+                    <div class="row g-3">
+                        {% for field in form %}
+                            {% if field.name != 'plan' and field.name != 'plan_nutricional' and field.name != 'plan_kinesiologia' %}
+                                <div class="col-md-6 mb-2">
+                                    <label class="fw-bold text-secondary small">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="text-muted" style="font-size: 0.75rem;">{{ field.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="col-12 mt-4 border-top pt-3">
+                            <label class="form-label fw-bold text-dark small text-uppercase">
+                                <i class="bi bi-card-checklist text-primary me-1"></i> Membresía Contratada
+                            </label>
+                            {{ form.plan }}
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <div class="card bg-light border-0 p-3 rounded-4 shadow-sm">
+                                <h6 class="fw-bold text-secondary small text-uppercase mb-3">
+                                    <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Servicios Clínicos Habilitados
+                                </h6>
+                                
+                                <div class="d-flex justify-content-around align-items-center">
+                                    <div class="form-check form-switch fs-5">
+                                        {{ form.plan_nutricional }}
+                                        <label class="form-check-label fw-semibold text-dark fs-6 mt-1 ms-2">Nutrición</label>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch fs-5">
+                                        {{ form.plan_kinesiologia }}
+                                        <label class="form-check-label fw-semibold text-dark fs-6 mt-1 ms-2">Kinesiología</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">GUARDAR REGISTRO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevoBloque" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content border-0 shadow">
+        <form method="post" action="{% url 'crear_bloque_manual' %}">
+          {% csrf_token %}
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>ACTIVAR JORNADA</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+              <div class="alert alert-info py-2 small mb-4">
+                  <i class="bi bi-info-circle me-2"></i> Genera todos los bloques para un día específico.
+              </div>
+              <div class="mb-3">
+                  <label class="fw-bold text-secondary">1. Fecha a Activar</label>
+                  <input type="date" name="dia" class="form-control form-control-lg" required>
+              </div>
+              <div class="mb-3">
+                  <label class="fw-bold text-secondary">2. Seleccionar Jornada</label>
+                  <select name="jornada" class="form-select form-select-lg" required>
+                      <option value="" disabled selected>-- Elegir Mañana o Tarde --</option>
+                      <option value="manana">☀️ Mañana (06:30 a 12:00)</option>
+                      <option value="tarde">🌙 Tarde (13:00 a 21:30)</option>
+                  </select>
+              </div>
+              <div class="mb-3">
+                  <label class="fw-bold text-secondary">3. Cupos por Bloque</label>
+                  <input type="number" name="capacidad" class="form-control form-control-lg" min="1" max="50" value="10" required>
+              </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">GENERAR BLOQUES</button>
+          </div>
+        </form>
+      </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAgendar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-dark text-white">
+            <h5 class="modal-title"><i class="bi bi-card-list me-2"></i>Detalle y Reserva</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+              <h6 class="text-primary fw-bold mb-3 border-bottom pb-2" id="textoBloqueInfo"></h6>
+              <p class="fw-bold mb-2 small text-uppercase">Alumnos en este bloque:</p>
+              <div id="contenedorAsistentes" class="mb-4"></div>
+              
+              <div id="seccionAgregarReserva">
+                  <form method="post" action="{% url 'agendar_reserva' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="bloque_id" id="inputBloqueId">
+                      
+                      <input type="hidden" name="redirect_to" value="calendario_semanal">
+                      
+                      <label class="fw-bold mb-2 text-success small">AÑADIR ALUMNO:</label>
+                      <div class="input-group">
+                          <select name="alumno_id" class="form-select" required>
+                              <option value="" disabled selected>-- Buscar --</option>
+                              {% for alu in alumnos_registrados %}
+                                  <option value="{{ alu.id }}">{{ alu.nombre_completo }}</option>
+                              {% endfor %}
+                          </select>
+                          <button type="submit" class="btn btn-success">AGENDAR</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+    </div>
+</div>
+
+<script>
+    function abrirDetalleBloque(bloqueId, diaTexto, horaTexto) {
+        document.getElementById('inputBloqueId').value = bloqueId;
+        document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
+        const contenedor = document.getElementById('contenedorAsistentes');
+        contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+
+        fetch(`/gym/bloque/${bloqueId}/detalle/`)
+            .then(response => response.json())
+            .then(data => {
+                let html = '<div class="list-group list-group-flush border rounded mb-3">';
+                if(data.asistentes.length > 0) {
+                    data.asistentes.forEach(a => {
+                        html += `<div class="list-group-item py-2 small d-flex justify-content-between">
+                                    <span>${a.nombre}</span>
+                                    <span class="text-muted">${a.telefono}</span>
+                                 </div>`;
+                    });
+                } else {
+                    html += '<div class="list-group-item py-3 text-center text-muted">Sin reservas aún</div>';
+                }
+                html += '</div>';
+                contenedor.innerHTML = html;
+            });
+    }
+</script>
 {% endblock %}
