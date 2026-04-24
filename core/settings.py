@@ -1,11 +1,11 @@
 import os
+import dj_database_url
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-h(-#z!23q0^eoajcy2erkpu@&(dej)@w@u61r48&y^_t-zse-u'
-
-DEBUG = True
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-h(-#z!23q0^eoajcy2erkpu@&(dej)@w@u61r48&y^_t-zse-u')
+DEBUG = 'RENDER' not in os.environ
 
 CSRF_TRUSTED_ORIGINS = [
     'https://8d61-179-60-77-168.ngrok-free.app',
@@ -35,7 +35,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
@@ -57,12 +57,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        # Usará SQLite en tu PC, y PostgreSQL en Render
+        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3')
+    )
 }
-
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -88,6 +87,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
