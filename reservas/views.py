@@ -1,8 +1,6 @@
 import json
 from django.shortcuts import render, redirect
 from django.utils.dateformat import format
-from .models import HorarioBloque, FichaAlumno, Reserva
-from .forms import FichaAlumnoForm
 from datetime import date, timedelta, time, datetime
 from django.http import JsonResponse
 from collections import Counter
@@ -15,6 +13,8 @@ from weasyprint import HTML
 from django.db.models.functions import TruncDate
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from .models import HorarioBloque, FichaAlumno, Reserva
+from .forms import FichaAlumnoForm
 
 @login_required
 def home(request):
@@ -379,7 +379,8 @@ def calendario_semanal(request):
     semana_siguiente = lunes + timedelta(days=7)
     
     bloques_semana = HorarioBloque.objects.filter(
-        dia__range=[lunes, domingo]
+        dia__range=[lunes, domingo],
+        tipo='ENTRENAMIENTO' 
     ).prefetch_related('reservas_bloque__alumno')
     
     dias_semana = [lunes + timedelta(days=i) for i in range(7)]
@@ -459,3 +460,49 @@ def exportar_ficha_pdf(request, pk):
 @login_required
 def radio_popup(request):
     return render(request, 'admin_gym/radio.html')
+
+
+@login_required
+def eliminar_bloque(request):
+    if request.method == 'POST':
+        bloque_id = request.POST.get('bloque_id')
+        redirect_to = request.POST.get('redirect_to', 'calendario_semanal')
+        
+        if bloque_id:
+            try:
+                bloque = HorarioBloque.objects.get(id=bloque_id)
+                bloque.delete() 
+                
+                messages.success(request, "Bloque individual eliminado exitosamente.")
+            except HorarioBloque.DoesNotExist:
+                messages.error(request, "El bloque no existe o ya fue eliminado.")
+            
+        return redirect(redirect_to)
+    return redirect('calendario_semanal')
+
+@login_required
+def eliminar_reserva(request, reserva_id):
+    if request.method == 'POST':
+        redirect_to = request.POST.get('redirect_to', 'calendario_semanal')
+        try:
+            reserva = Reserva.objects.get(id=reserva_id)
+            nombre_alumno = reserva.alumno.nombre_completo
+            reserva.delete()
+            messages.success(request, f"Reserva de {nombre_alumno} eliminada.")
+        except Reserva.DoesNotExist:
+            messages.error(request, "La reserva no existe.")
+            
+        return redirect(redirect_to)
+    return redirect('calendario_semanal')
+
+@login_required
+def toggle_estado_alumno(request, pk):
+    if request.method == 'POST':
+        alumno = get_object_or_404(FichaAlumno, pk=pk)
+        alumno.activo = not alumno.activo  # Invierte el estado actual
+        alumno.save()
+        
+        estado = "habilitado" if alumno.activo else "deshabilitado"
+        messages.success(request, f"El alumno {alumno.nombre_completo} ha sido {estado}.")
+        
+    return redirect('lista_alumnos')

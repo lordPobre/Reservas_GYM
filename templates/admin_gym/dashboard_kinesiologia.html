@@ -160,12 +160,24 @@
     <div class="modal-dialog">
       <div class="modal-content border-0 shadow">
           <div class="modal-header bg-dark text-white">
-            <h5 class="modal-title">Detalle de Sesión</h5>
+            <h5 class="modal-title"><i class="bi bi-heart-pulse me-2"></i>Detalle y Cita Kinesiológica</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
-              <h6 class="text-primary fw-bold mb-3 border-bottom pb-2" id="textoBloqueInfo"></h6>
-              <p class="fw-bold mb-2 small text-uppercase">Paciente asignado:</p>
+              <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                  <h6 class="text-danger fw-bold mb-0" id="textoBloqueInfo"></h6>
+                  
+                  <form method="post" action="{% url 'eliminar_bloque' %}" class="m-0">
+                      {% csrf_token %}
+                      <input type="hidden" name="bloque_id" id="inputEliminarBloqueId">
+                      <input type="hidden" name="redirect_to" value="reserva_kinesiologica">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('ATENCIÓN: ¿Seguro que deseas eliminar este bloque completo? Se borrarán todas las citas dentro de él.');">
+                          <i class="bi bi-trash-fill"></i> Borrar Bloque
+                      </button>
+                  </form>
+              </div>
+
+              <p class="fw-bold mb-2 small text-uppercase">Pacientes en este bloque:</p>
               <div id="contenedorAsistentes" class="mb-4"></div>
               
               <div id="seccionAgregarReserva">
@@ -174,7 +186,7 @@
                       <input type="hidden" name="bloque_id" id="inputBloqueId">
                       <input type="hidden" name="redirect_to" value="reserva_kinesiologica">
                       
-                      <label class="fw-bold mb-2 text-primary small">AÑADIR PACIENTE:</label>
+                      <label class="fw-bold mb-2 text-danger small">AÑADIR PACIENTE:</label>
                       <div class="input-group">
                           <select name="alumno_id" class="form-select" required>
                               <option value="" disabled selected>-- Buscar Paciente --</option>
@@ -182,7 +194,7 @@
                                   <option value="{{ alu.id }}">{{ alu.nombre_completo }}</option>
                               {% endfor %}
                           </select>
-                          <button type="submit" class="btn btn-primary">AGENDAR</button>
+                          <button type="submit" class="btn btn-danger">AGENDAR CITA</button>
                       </div>
                   </form>
               </div>
@@ -193,10 +205,16 @@
 
 <script>
     function abrirDetalleBloque(bloqueId, diaTexto, horaTexto) {
+        // Asignamos el ID a los formularios
         document.getElementById('inputBloqueId').value = bloqueId;
+        document.getElementById('inputEliminarBloqueId').value = bloqueId;
         document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
+        
         const contenedor = document.getElementById('contenedorAsistentes');
-        contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+        contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-danger"></div></div>';
+
+        // Capturamos el token de seguridad
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         fetch(`/gym/bloque/${bloqueId}/detalle/`)
             .then(response => response.json())
@@ -204,9 +222,19 @@
                 let html = '<div class="list-group list-group-flush border rounded mb-3">';
                 if(data.asistentes.length > 0) {
                     data.asistentes.forEach(a => {
-                        html += `<div class="list-group-item py-2 small d-flex justify-content-between border-start border-primary border-3">
-                                    <span class="fw-bold">${a.nombre}</span>
-                                    <span class="text-muted"><i class="bi bi-telephone-fill me-1"></i> ${a.telefono}</span>
+                        // Borde rojo (border-danger) adaptado a la estética de Kinesiología
+                        html += `<div class="list-group-item py-2 small d-flex justify-content-between align-items-center border-start border-danger border-3">
+                                    <div>
+                                        <span class="fw-bold d-block">${a.nombre}</span>
+                                        <span class="text-muted"><i class="bi bi-telephone-fill me-1"></i> ${a.telefono}</span>
+                                    </div>
+                                    <form method="post" action="/gym/reserva/eliminar/${a.id}/" class="m-0">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                                        <input type="hidden" name="redirect_to" value="reserva_kinesiologica">
+                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('¿Quitar a ${a.nombre} de esta cita kinesiológica?');" title="Eliminar cita">
+                                            <i class="bi bi-x-circle-fill fs-5"></i>
+                                        </button>
+                                    </form>
                                  </div>`;
                     });
                 } else {

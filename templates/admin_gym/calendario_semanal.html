@@ -30,6 +30,7 @@
         <h2 class="fw-bold m-0"><i class="bi bi-calendar3 me-2"></i>CALENDARIO SEMANAL</h2>
         
         <div class="d-flex gap-3 align-items-center">
+
             <button class="btn btn-outline-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoBloque">
                 <i class="bi bi-clock-history me-2"></i>CREAR BLOQUES
             </button>
@@ -226,7 +227,19 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
-              <h6 class="text-primary fw-bold mb-3 border-bottom pb-2" id="textoBloqueInfo"></h6>
+              <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                  <h6 class="text-primary fw-bold mb-0" id="textoBloqueInfo"></h6>
+                  
+                  <form method="post" action="{% url 'eliminar_bloque' %}" class="m-0">
+                      {% csrf_token %}
+                      <input type="hidden" name="bloque_id" id="inputEliminarBloqueId">
+                      <input type="hidden" name="redirect_to" value="calendario_semanal">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('ATENCIÓN: ¿Seguro que deseas eliminar este bloque completo? Se borrarán todas las reservas dentro de él.');">
+                          <i class="bi bi-trash-fill"></i> Borrar Bloque
+                      </button>
+                  </form>
+              </div>
+
               <p class="fw-bold mb-2 small text-uppercase">Alumnos en este bloque:</p>
               <div id="contenedorAsistentes" class="mb-4"></div>
               
@@ -234,7 +247,6 @@
                   <form method="post" action="{% url 'agendar_reserva' %}">
                       {% csrf_token %}
                       <input type="hidden" name="bloque_id" id="inputBloqueId">
-                      
                       <input type="hidden" name="redirect_to" value="calendario_semanal">
                       
                       <label class="fw-bold mb-2 text-success small">AÑADIR ALUMNO:</label>
@@ -256,10 +268,16 @@
 
 <script>
     function abrirDetalleBloque(bloqueId, diaTexto, horaTexto) {
+        // Asignamos el ID a ambos formularios (el de agendar y el de eliminar bloque)
         document.getElementById('inputBloqueId').value = bloqueId;
+        document.getElementById('inputEliminarBloqueId').value = bloqueId;
         document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
+        
         const contenedor = document.getElementById('contenedorAsistentes');
         contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+
+        // Capturamos el token de seguridad de Django desde cualquier formulario existente
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         fetch(`/gym/bloque/${bloqueId}/detalle/`)
             .then(response => response.json())
@@ -267,9 +285,19 @@
                 let html = '<div class="list-group list-group-flush border rounded mb-3">';
                 if(data.asistentes.length > 0) {
                     data.asistentes.forEach(a => {
-                        html += `<div class="list-group-item py-2 small d-flex justify-content-between">
-                                    <span>${a.nombre}</span>
-                                    <span class="text-muted">${a.telefono}</span>
+                        // Agregamos el formulario individual para eliminar a cada alumno de la lista
+                        html += `<div class="list-group-item py-2 small d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="fw-bold d-block">${a.nombre}</span>
+                                        <span class="text-muted"><i class="bi bi-telephone-fill me-1"></i> ${a.telefono}</span>
+                                    </div>
+                                    <form method="post" action="/gym/reserva/eliminar/${a.id}/" class="m-0">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                                        <input type="hidden" name="redirect_to" value="calendario_semanal">
+                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('¿Quitar a ${a.nombre} de este horario?');" title="Eliminar reserva">
+                                            <i class="bi bi-x-circle-fill fs-5"></i>
+                                        </button>
+                                    </form>
                                  </div>`;
                     });
                 } else {

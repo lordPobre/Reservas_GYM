@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -7,7 +8,7 @@ SECRET_KEY = 'django-insecure-h(-#z!23q0^eoajcy2erkpu@&(dej)@w@u61r48&y^_t-zse-u
 DEBUG = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://0107-179-60-77-168.ngrok-free.app',
+    'https://8d61-179-60-77-168.ngrok-free.app',
     'https://*.ngrok-free.app', # Esto permite cualquier URL futura de ngrok
 ]
 
@@ -25,6 +26,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -33,6 +35,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [

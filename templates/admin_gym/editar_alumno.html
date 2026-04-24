@@ -1,76 +1,251 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">Editar Ficha: {{ alumno.nombre_completo }}</h2>
-        <a href="{% url 'lista_alumnos' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Volver al Listado</a>
-    </div>
-
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-4 bg-light rounded">
-            <form method="post">
-                {% csrf_token %}
-                
-                <div class="row g-3 form-edicion">
-                    {% for field in form %}
-                        {% if field.name != 'plan' and field.name != 'plan_nutricional' and field.name != 'plan_kinesiologia' %}
-                            <div class="col-md-6 mb-2">
-                                <label class="fw-bold text-secondary small">{{ field.label }}</label>
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <small class="text-muted" style="font-size: 0.75rem;">{{ field.help_text }}</small>
-                                {% endif %}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-
-                    <div class="col-12 mt-4 border-top pt-3">
-                        <label class="form-label fw-bold text-dark small text-uppercase">
-                            <i class="bi bi-card-checklist text-primary me-1"></i> Membresía Contratada
-                        </label>
-                        {{ form.plan }}
-                    </div>
-
-                    <div class="col-12 mt-3">
-                        <div class="card bg-white border-0 p-3 rounded-4 shadow-sm">
-                            <h6 class="fw-bold text-secondary small text-uppercase mb-3">
-                                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Servicios Clínicos Habilitados
-                            </h6>
-                            
-                            <div class="d-flex justify-content-around align-items-center">
-                                <div class="form-check form-switch fs-5">
-                                    {{ form.plan_nutricional }}
-                                    <label class="form-check-label fw-semibold text-dark fs-6 mt-1 ms-2">Nutrición</label>
-                                </div>
-                                
-                                <div class="form-check form-switch fs-5">
-                                    {{ form.plan_kinesiologia }}
-                                    <label class="form-check-label fw-semibold text-dark fs-6 mt-1 ms-2">Kinesiología</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <hr class="my-4">
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{% url 'lista_alumnos' %}" class="btn btn-secondary px-4">Cancelar</a>
-                    <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm"><i class="bi bi-save me-2"></i>Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <style>
-    .form-edicion p { margin-bottom: 1rem; width: 100%; }
-    .form-edicion label { font-weight: 600; color: #495057; display: block; margin-bottom: 0.3rem;}
+    /* ESTILOS MODERNOS PARA EL FORMULARIO DE EDICIÓN */
+    .edit-card {
+        border: none;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    .edit-card-header {
+        background-color: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f1f3f5;
+        font-weight: 700;
+        color: #495057;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.85rem;
+    }
+    .edit-card-body {
+        padding: 1.5rem;
+    }
     
-    /* CORRECCIÓN CSS: Se excluyen los checkboxes para que los switches no se deformen */
+    /* Diseño de los Inputs */
+    .form-edicion label {
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.4rem;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
     .form-edicion input:not([type="checkbox"]), 
     .form-edicion select, 
     .form-edicion textarea {
-        display: block; width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.375rem;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        width: 100%;
+        color: #212529;
+    }
+    .form-edicion input:not([type="checkbox"]):focus, 
+    .form-edicion select:focus, 
+    .form-edicion textarea:focus {
+        background-color: #fff;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+        outline: none;
+    }
+    .form-edicion textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    /* Switches Clínicos Modernos */
+    .clinical-switch {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1rem;
+        transition: all 0.2s ease;
+    }
+    .clinical-switch:hover {
+        border-color: #ced4da;
+        background: #f8f9fa;
+    }
+
+    /* Avatar de Cabecera */
+    .avatar-circle {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        font-weight: bold;
     }
 </style>
+
+<div class="container-fluid py-4">
+    <form method="post" class="form-edicion">
+        {% csrf_token %}
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="avatar-circle shadow-sm">
+                    {{ alumno.nombre_completo|make_list|first|upper }}
+                </div>
+                <div>
+                    <h2 class="fw-bold text-dark m-0">Editar Ficha</h2>
+                    <p class="text-muted m-0 fs-5">{{ alumno.nombre_completo }}</p>
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'lista_alumnos' %}" class="btn btn-light border rounded-pill px-4 fw-bold text-secondary me-2">Cancelar</a>
+                <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm"><i class="bi bi-save me-2"></i>Guardar</button>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                
+                <div class="edit-card">
+                    <div class="edit-card-header"><i class="bi bi-person-vcard me-2"></i>1. Datos Personales y Contacto</div>
+                    <div class="edit-card-body row g-3">
+                        {% if form.nombre_completo %}
+                            <div class="col-md-12"><label>{{ form.nombre_completo.label }}</label>{{ form.nombre_completo }}</div>
+                        {% endif %}
+                        {% if form.telefono %}
+                            <div class="col-md-6"><label>{{ form.telefono.label }}</label>{{ form.telefono }}</div>
+                        {% endif %}
+                        {% if form.correo %}
+                            <div class="col-md-6"><label>{{ form.correo.label }}</label>{{ form.correo }}</div>
+                        {% endif %}
+                        {% if form.fecha_nacimiento %}
+                            <div class="col-md-4"><label>{{ form.fecha_nacimiento.label }}</label>{{ form.fecha_nacimiento }}</div>
+                        {% endif %}
+                        {% if form.edad %}
+                            <div class="col-md-4"><label>{{ form.edad.label }}</label>{{ form.edad }}</div>
+                        {% endif %}
+                        {% if form.ocupacion %}
+                            <div class="col-md-4"><label>{{ form.ocupacion.label }}</label>{{ form.ocupacion }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="edit-card">
+                    <div class="edit-card-header"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>2. Físico y Entrenamiento</div>
+                    <div class="edit-card-body row g-3">
+                        {% if form.peso %}
+                            <div class="col-md-6"><label>{{ form.peso.label }}</label>{{ form.peso }}</div>
+                        {% endif %}
+                        {% if form.estatura %}
+                            <div class="col-md-6"><label>{{ form.estatura.label }}</label>{{ form.estatura }}</div>
+                        {% endif %}
+                        {% if form.objetivo %}
+                            <div class="col-md-12"><label>{{ form.objetivo.label }}</label>{{ form.objetivo }}</div>
+                        {% endif %}
+                        {% if form.experiencia %}
+                            <div class="col-md-6"><label>{{ form.experiencia.label }}</label>{{ form.experiencia }}</div>
+                        {% endif %}
+                        {% if form.deporte_previo %}
+                            <div class="col-md-6"><label>{{ form.deporte_previo.label }}</label>{{ form.deporte_previo }}</div>
+                        {% endif %}
+                        {% if form.dias_semanales %}
+                            <div class="col-md-6"><label>{{ form.dias_semanales.label }}</label>{{ form.dias_semanales }}</div>
+                        {% endif %}
+                        {% if form.horario_preferente %}
+                            <div class="col-md-6"><label>{{ form.horario_preferente.label }}</label>{{ form.horario_preferente }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="edit-card">
+                    <div class="edit-card-header"><i class="bi bi-heart-pulse-fill me-2 text-danger"></i>3. Área Clínica y Hábitos</div>
+                    <div class="edit-card-body row g-3">
+                        {% if form.lesiones %}
+                            <div class="col-md-6"><label>{{ form.lesiones.label }}</label>{{ form.lesiones }}</div>
+                        {% endif %}
+                        {% if form.medicacion %}
+                            <div class="col-md-6"><label>{{ form.medicacion.label }}</label>{{ form.medicacion }}</div>
+                        {% endif %}
+                        {% if form.intolerancias %}
+                            <div class="col-md-6"><label>{{ form.intolerancias.label }}</label>{{ form.intolerancias }}</div>
+                        {% endif %}
+                        {% if form.suplementos %}
+                            <div class="col-md-6"><label>{{ form.suplementos.label }}</label>{{ form.suplementos }}</div>
+                        {% endif %}
+                        {% if form.comida_favorita %}
+                            <div class="col-md-12 mt-4"><label>{{ form.comida_favorita.label }}</label>{{ form.comida_favorita }}</div>
+                        {% endif %}
+                        
+                        <div class="col-12 mt-3"><h6 class="fw-bold text-secondary border-bottom pb-2 mb-3 small">Recordatorio 24 Hrs</h6></div>
+                        {% if form.comida_desayuno %}
+                            <div class="col-md-4"><label class="text-primary"><i class="bi bi-sunrise me-1"></i>{{ form.comida_desayuno.label }}</label>{{ form.comida_desayuno }}</div>
+                        {% endif %}
+                        {% if form.comida_almuerzo %}
+                            <div class="col-md-4"><label class="text-warning"><i class="bi bi-sun me-1"></i>{{ form.comida_almuerzo.label }}</label>{{ form.comida_almuerzo }}</div>
+                        {% endif %}
+                        {% if form.comida_cena %}
+                            <div class="col-md-4"><label style="color: #6610f2;"><i class="bi bi-moon-stars me-1"></i>{{ form.comida_cena.label }}</label>{{ form.comida_cena }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    {% for field in form.visible_fields %}
+                        {% if field.name != 'nombre_completo' and field.name != 'telefono' and field.name != 'correo' and field.name != 'fecha_nacimiento' and field.name != 'edad' and field.name != 'ocupacion' and field.name != 'peso' and field.name != 'estatura' and field.name != 'objetivo' and field.name != 'experiencia' and field.name != 'deporte_previo' and field.name != 'dias_semanales' and field.name != 'horario_preferente' and field.name != 'lesiones' and field.name != 'medicacion' and field.name != 'intolerancias' and field.name != 'suplementos' and field.name != 'comida_favorita' and field.name != 'comida_desayuno' and field.name != 'comida_almuerzo' and field.name != 'comida_cena' and field.name != 'plan' and field.name != 'plan_nutricional' and field.name != 'plan_kinesiologia' %}
+                            <div class="col-md-6 edit-card p-3">
+                                <label>{{ field.label }}</label>
+                                {{ field }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="edit-card sticky-top" style="top: 20px; z-index: 1;">
+                    <div class="edit-card-header bg-primary text-white border-0"><i class="bi bi-award me-2"></i>Membresía y Servicios</div>
+                    <div class="edit-card-body">
+                        
+                        <label class="text-primary fw-bold mb-2"><i class="bi bi-card-checklist me-1"></i> Plan Gimnasio</label>
+                        {{ form.plan }}
+
+                        <hr class="my-4 opacity-25">
+
+                        <label class="text-secondary fw-bold mb-3"><i class="bi bi-plus-square-fill me-1"></i> Servicios Clínicos</label>
+                        
+                        <div class="clinical-switch mb-3 d-flex align-items-center justify-content-between">
+                            <label class="form-check-label fw-bold text-dark m-0" for="{{ form.plan_nutricional.id_for_label }}">
+                                <i class="bi bi-apple text-success me-1"></i> Nutrición
+                            </label>
+                            <div class="form-check form-switch fs-4 m-0">
+                                {{ form.plan_nutricional }}
+                            </div>
+                        </div>
+
+                        <div class="clinical-switch mb-4 d-flex align-items-center justify-content-between">
+                            <label class="form-check-label fw-bold text-dark m-0" for="{{ form.plan_kinesiologia.id_for_label }}">
+                                <i class="bi bi-capsule text-danger me-1"></i> Kinesiología
+                            </label>
+                            <div class="form-check form-switch fs-4 m-0">
+                                {{ form.plan_kinesiologia }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 fw-bold py-3 shadow-sm rounded-3 mb-2 fs-5">
+                            <i class="bi bi-save me-2"></i>GUARDAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
 {% endblock %}

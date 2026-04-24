@@ -1,99 +1,236 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    /* ESTILOS MODERNOS PARA EL PERFIL */
+    .profile-card {
+        border: none;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .profile-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+    
+    .avatar-lg {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .data-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
+    .data-value {
+        font-size: 1rem;
+        color: #212529;
+        font-weight: 500;
+    }
+    
+    .icon-box {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .border-end-md {
+        @media (min-width: 768px) { border-right: 1px solid #dee2e6; padding-right: 1.5rem; }
+    }
+</style>
+
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark"><i class="bi bi-person-badge text-primary me-2"></i>{{ alumno.nombre_completo }}</h2>
-        <div>
-            <a href="{% url 'editar_alumno' alumno.pk %}" class="btn btn-warning shadow-sm me-2"><i class="bi bi-pencil me-2"></i>Editar Ficha</a>
-            <a href="{% url 'lista_alumnos' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Volver</a>
+    <div class="profile-card p-4 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-4">
+                <div class="avatar-lg shadow-sm">
+                    {{ alumno.nombre_completo|make_list|first|upper }}
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-2">{{ alumno.nombre_completo }}</h2>
+                    <span class="badge bg-light text-dark border px-3 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-target me-1 text-danger"></i> Objetivo: {{ alumno.objetivo|default:"No definido" }}
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'lista_alumnos' %}" class="btn btn-outline-secondary rounded-pill px-4"><i class="bi bi-arrow-left me-2"></i>Volver</a>
+                <a href="{% url 'editar_alumno' alumno.pk %}" class="btn btn-primary rounded-pill px-4 shadow-sm"><i class="bi bi-pencil-square me-2"></i>Editar Ficha</a>
+            </div>
         </div>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-dark text-white fw-bold">1. Datos Personales</div>
-                <div class="card-body">
-                    <p><strong>Edad:</strong> {{ alumno.edad }} años (Nacimiento: {{ alumno.fecha_nacimiento }})</p>
-                    <p><strong>Contacto:</strong> {{ alumno.telefono }} | {{ alumno.correo|default:"Sin correo" }}</p>
-                    <p><strong>Físico:</strong> Peso: {{ alumno.peso }} kg | Estatura: {{ alumno.estatura }} cm</p>
-                    <p><strong>Ocupación:</strong> {{ alumno.ocupacion }}</p>
-                    <hr>
-                    <p><strong>Objetivo:</strong> {{ alumno.objetivo }}</p>
+        <div class="col-lg-4">
+            
+            <div class="profile-card p-4 mb-4 border-top border-primary border-4">
+                <h6 class="fw-bold text-dark mb-4"><i class="bi bi-award-fill text-primary me-2"></i>Estado de Cuenta</h6>
+                
+                <div class="mb-4">
+                    <div class="data-label">Plan Gimnasio</div>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary me-3"><i class="bi bi-card-checklist"></i></div>
+                        <h5 class="fw-bold m-0 text-primary">{{ alumno.get_plan_display|default:"Sin Plan Activo" }}</h5>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-success text-white fw-bold">2. Entrenamiento</div>
-                <div class="card-body">
-                    <p><strong>Días Semanales:</strong> {{ alumno.dias_semanales }}</p>
-                    <p><strong>Horario Preferente:</strong> {{ alumno.horario_preferente }}</p>
-                    <p><strong>Experiencia:</strong> {{ alumno.experiencia }}</p>
-                    <p><strong>Deporte Previo:</strong> {{ alumno.deporte_previo|default:"Ninguno" }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="row g-3 mt-4">
-    <div class="col-md-6">
-        <div class="modern-card p-3 h-100 d-flex align-items-center">
-            <div class="bg-primary text-white rounded-circle p-3 me-3">
-                <i class="bi bi-award fs-4"></i>
-            </div>
-            <div>
-                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Membresía</small>
-                <h5 class="fw-bold m-0 text-dark">{{ alumno.get_plan_display }}</h5>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="modern-card p-3 h-100">
-            <small class="text-muted text-uppercase fw-bold d-block mb-2" style="font-size: 0.7rem;">Área Clínica</small>
-                <div class="d-flex gap-2">
+                <div class="data-label mb-2 mt-4">Servicios Clínicos</div>
+                <div class="d-flex flex-column gap-2 mt-2">
                     {% if alumno.plan_nutricional %}
-                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
-                            <i class="bi bi-apple me-1"></i> Nutrición Activa
-                        </span>
+                        <div class="badge bg-success bg-opacity-10 text-success border border-success p-2 text-start rounded-3 fs-6">
+                            <i class="bi bi-apple me-2"></i>Nutrición Habilitada
+                        </div>
                     {% else %}
-                        <span class="badge bg-light text-muted border px-3 py-2 rounded-pill opacity-50">
-                            Nutrición Off
-                        </span>
+                        <div class="badge bg-light text-muted border p-2 text-start rounded-3 fs-6 opacity-50">
+                            <i class="bi bi-apple me-2"></i>Nutrición Inactiva
+                        </div>
                     {% endif %}
 
                     {% if alumno.plan_kinesiologia %}
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill">
-                            <i class="bi bi-capsule me-1"></i> Kinesiología Activa
-                        </span>
+                        <div class="badge bg-danger bg-opacity-10 text-danger border border-danger p-2 text-start rounded-3 fs-6">
+                            <i class="bi bi-capsule me-2"></i>Kinesiología Habilitada
+                        </div>
                     {% else %}
-                        <span class="badge bg-light text-muted border px-3 py-2 rounded-pill opacity-50">
-                            Kine Off
-                        </span>
+                        <div class="badge bg-light text-muted border p-2 text-start rounded-3 fs-6 opacity-50">
+                            <i class="bi bi-capsule me-2"></i>Kinesiología Inactiva
+                        </div>
                     {% endif %}
                 </div>
             </div>
-        </div>
-    </div>
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary text-white fw-bold">3. Nutrición y Salud</div>
-                <div class="card-body row">
-                    <div class="col-md-6 border-end">
-                        <h6 class="fw-bold text-secondary border-bottom pb-2">Preferencias y Restricciones</h6>
-                        <p><strong>Favorita:</strong> {{ alumno.comida_favorita|default:"N/A" }}</p>
-                        <p><strong>Intolerancias:</strong> <span class="text-danger">{{ alumno.intolerancias|default:"Ninguna" }}</span></p>
-                        <p><strong>Medicamentos:</strong> {{ alumno.medicacion|default:"Ninguno" }}</p>
-                        <p><strong>Lesiones:</strong> {{ alumno.lesiones|default:"Ninguna registrada" }}</p>
-                        <p><strong>Suplementos:</strong> {{ alumno.suplementos|default:"Ninguno" }}</p>
+
+            <div class="profile-card p-4 border-top border-secondary border-4">
+                <h6 class="fw-bold text-dark mb-4"><i class="bi bi-person-vcard text-secondary me-2"></i>Datos Personales</h6>
+                
+                <div class="d-flex flex-column gap-3">
+                    <div>
+                        <div class="data-label">Contacto</div>
+                        <div class="data-value mb-1"><i class="bi bi-whatsapp text-success me-2"></i>{{ alumno.telefono }}</div>
+                        <div class="data-value"><i class="bi bi-envelope text-muted me-2"></i>{{ alumno.correo|default:"Sin correo" }}</div>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="fw-bold text-secondary border-bottom pb-2">Recordatorio 24 Hrs</h6>
-                        <p><strong>Desayuno:</strong> {{ alumno.comida_desayuno|default:"-" }}</p>
-                        <p><strong>Almuerzo:</strong> {{ alumno.comida_almuerzo|default:"-" }}</p>
-                        <p><strong>Cena:</strong> {{ alumno.comida_cena|default:"-" }}</p>
-                        <p class="small text-muted mt-3"><em>Registro desde: {{ alumno.fecha_registro }}</em></p>
+                    <hr class="m-0 opacity-25">
+                    <div>
+                        <div class="data-label">Perfil Biológico</div>
+                        <div class="data-value mb-1"><i class="bi bi-calendar-event text-muted me-2"></i>{{ alumno.edad }} años <small class="text-muted">({{ alumno.fecha_nacimiento }})</small></div>
+                        <div class="data-value"><i class="bi bi-rulers text-muted me-2"></i>{{ alumno.peso }} kg / {{ alumno.estatura }} cm</div>
+                    </div>
+                    <hr class="m-0 opacity-25">
+                    <div>
+                        <div class="data-label">Ocupación</div>
+                        <div class="data-value"><i class="bi bi-briefcase text-muted me-2"></i>{{ alumno.ocupacion|default:"No informada" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            
+            <div class="profile-card p-4 mb-4 border-top border-info border-4">
+                <h6 class="fw-bold text-dark mb-4"><i class="bi bi-lightning-charge-fill text-info me-2"></i>Perfil de Entrenamiento</h6>
+                
+                <div class="row g-4">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box bg-info bg-opacity-10 text-info me-3"><i class="bi bi-calendar-week"></i></div>
+                            <div>
+                                <div class="data-label">Frecuencia</div>
+                                <div class="data-value">{{ alumno.dias_semanales|default:"-" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box bg-info bg-opacity-10 text-info me-3"><i class="bi bi-clock"></i></div>
+                            <div>
+                                <div class="data-label">Horario Preferente</div>
+                                <div class="data-value">{{ alumno.horario_preferente|default:"-" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box bg-info bg-opacity-10 text-info me-3"><i class="bi bi-bar-chart-steps"></i></div>
+                            <div>
+                                <div class="data-label">Experiencia Previa</div>
+                                <div class="data-value">{{ alumno.experiencia|default:"-" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box bg-info bg-opacity-10 text-info me-3"><i class="bi bi-bicycle"></i></div>
+                            <div>
+                                <div class="data-label">Deporte Anterior</div>
+                                <div class="data-value">{{ alumno.deporte_previo|default:"Ninguno" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card p-4 border-top border-success border-4">
+                <h6 class="fw-bold text-dark mb-4"><i class="bi bi-heart-pulse-fill text-success me-2"></i>Ficha Clínica y Nutricional</h6>
+                
+                <div class="row g-4">
+                    <div class="col-md-6 border-end-md">
+                        <h6 class="fw-bold text-secondary mb-3 small">RESTRICCIONES Y ANTECEDENTES</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0 py-2 bg-transparent border-0">
+                                <div class="data-label">Comida Favorita</div>
+                                <div class="data-value">{{ alumno.comida_favorita|default:"-" }}</div>
+                            </li>
+                            <li class="list-group-item px-0 py-2 bg-transparent border-light">
+                                <div class="data-label text-danger">Intolerancias / Alergias</div>
+                                <div class="data-value fw-bold {% if alumno.intolerancias %}text-danger{% endif %}">{{ alumno.intolerancias|default:"Ninguna" }}</div>
+                            </li>
+                            <li class="list-group-item px-0 py-2 bg-transparent border-light">
+                                <div class="data-label">Medicamentos</div>
+                                <div class="data-value">{{ alumno.medicacion|default:"Ninguno" }}</div>
+                            </li>
+                            <li class="list-group-item px-0 py-2 bg-transparent border-light">
+                                <div class="data-label text-warning">Lesiones</div>
+                                <div class="data-value fw-semibold {% if alumno.lesiones %}text-warning{% endif %}">{{ alumno.lesiones|default:"Ninguna registrada" }}</div>
+                            </li>
+                            <li class="list-group-item px-0 py-2 bg-transparent border-light">
+                                <div class="data-label">Suplementos Actuales</div>
+                                <div class="data-value">{{ alumno.suplementos|default:"Ninguno" }}</div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6 ps-md-4">
+                        <h6 class="fw-bold text-secondary mb-3 small">RECORDATORIO 24 HRS</h6>
+                        <div class="d-flex flex-column gap-3">
+                            <div class="p-3 bg-light rounded-3 border border-secondary border-opacity-25">
+                                <div class="data-label text-primary"><i class="bi bi-sunrise me-1"></i>Desayuno</div>
+                                <div class="data-value mt-1">{{ alumno.comida_desayuno|default:"Sin registro" }}</div>
+                            </div>
+                            <div class="p-3 bg-light rounded-3 border border-secondary border-opacity-25">
+                                <div class="data-label text-warning"><i class="bi bi-sun me-1"></i>Almuerzo</div>
+                                <div class="data-value mt-1">{{ alumno.comida_almuerzo|default:"Sin registro" }}</div>
+                            </div>
+                            <div class="p-3 bg-light rounded-3 border border-secondary border-opacity-25">
+                                <div class="data-label" style="color: #6610f2;"><i class="bi bi-moon-stars me-1"></i>Cena</div>
+                                <div class="data-value mt-1">{{ alumno.comida_cena|default:"Sin registro" }}</div>
+                            </div>
+                        </div>
+                        <div class="text-end mt-4">
+                            <small class="text-muted"><i class="bi bi-clock-history me-1"></i>Ficha creada el: {{ alumno.fecha_registro|date:"d M Y" }}</small>
+                        </div>
                     </div>
                 </div>
             </div>

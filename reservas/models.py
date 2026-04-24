@@ -72,6 +72,7 @@ class FichaAlumno(models.Model):
     hora_dormir = models.TimeField(verbose_name="¿a qué hora usted generalmente se duerme o acuesta?", null=True, blank=True)
     suplementos = models.TextField(verbose_name="Suplementos que ha consumido, tiempo y administración", blank=True)
     comentario_adicional = models.TextField(verbose_name="Comentario adicional", blank=True)
+    activo = models.BooleanField(default=True)
     
 
     class Meta:
