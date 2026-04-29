@@ -7,10 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-h(-#z!23q0^eoajcy2erkpu@&(dej)@w@u61r48&y^_t-zse-u')
 DEBUG = 'RENDER' not in os.environ
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://8d61-179-60-77-168.ngrok-free.app',
-    'https://*.ngrok-free.app', # Esto permite cualquier URL futura de ngrok
-]
+CSRF_TRUSTED_ORIGINS = []
 
 ALLOWED_HOSTS = ['*']
 
@@ -41,7 +38,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # <-- Agrega esta línea
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,9 +75,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'es' # Cambiamos 'en-us' por español
+LANGUAGE_CODE = 'es'
 
-TIME_ZONE = 'America/Santiago' # Zona horaria de Chile
+TIME_ZONE = 'America/Santiago'
 
 USE_I18N = True
 

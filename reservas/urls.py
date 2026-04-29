@@ -23,7 +23,5 @@ urlpatterns = [
     path('bloque/<int:bloque_id>/detalle/', views.detalle_bloque_json, name='detalle_bloque_json'),
     path('agendar-reserva/', views.agendar_reserva, name='agendar_reserva'),
     path('obtener-bloques/', views.obtener_bloques_disponibles, name='obtener_bloques'),
-    
-    # --- REPORTES ---
     path('reportes/', views.reportes_admin, name='reportes_admin'),
 ]

@@ -1,4 +1,4 @@
-# Python
+
 __pycache__/
 *.py[cod]
 *$py.class
@@ -6,19 +6,16 @@ venv/
 .venv/
 env/
 
-# Django
 db.sqlite3
 db.sqlite3-journal
 media/
 staticfiles/
 .env
 
-# IDEs y Sistema
 .vscode/
 .idea/
 .DS_Store
 *.log
 ngrok.exe
 
-# Estáticos de Tailwind (si usas la carpeta theme)
 theme/node_modules/
