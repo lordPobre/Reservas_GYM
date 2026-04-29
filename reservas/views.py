@@ -100,7 +100,7 @@ def dashboard_admin(request):
         'dias_semana': dias_semana,
         'lunes': lunes,
         'domingo': domingo,
-        'times_slots': generar_slots_tiempo(),
+        'times_slots': generar_slots_entrenamiento(),
         'alumnos_registrados': alumnos_registrados,
         'nombre_mes': format(fecha_base, 'F').capitalize(), 
         'semana_anterior': semana_anterior.strftime('%Y-%m-%d'),
@@ -137,7 +137,7 @@ def dashboard_nutricion(request):
 
     alumnos_registrados = FichaAlumno.objects.filter(plan_nutricional=True).order_by('nombre_completo')
     
-    todos_los_slots = generar_slots_tiempo()
+    todos_los_slots = generar_slots_nutricion()
     slots_manana = [slot for slot in todos_los_slots if slot.hour <= 12] 
     slots_tarde = [slot for slot in todos_los_slots if slot.hour >= 13] 
 
@@ -178,7 +178,7 @@ def dashboard_kinesiologia(request):
     dias_semana = [lunes + timedelta(days=i) for i in range(7)]
     alumnos_registrados = FichaAlumno.objects.filter(plan_kinesiologia=True).order_by('nombre_completo')
     
-    todos_los_slots = generar_slots_tiempo()
+    todos_los_slots = generar_slots_kine()
     slots_manana = [slot for slot in todos_los_slots if slot.hour <= 12] 
     slots_tarde = [slot for slot in todos_los_slots if slot.hour >= 13] 
 
@@ -204,26 +204,55 @@ def registrar_alumno(request):
             return redirect('calendario_semanal')
     return redirect('calendario_semanal')
 
-def generar_slots_tiempo():
+def generar_slots_entrenamiento():
     slots = []
-    # BLOQUE MAÑANA: 06:30 a 12:00
+    # Mañana: 06:30 a 11:00
     t = time(6, 30)
-    while t <= time(11, 0): # Termina a las 11:00
+    while t <= time(11, 0):
         slots.append(t)
-        total_min = (t.hour * 60) + t.minute + 30
-        if total_min > 1439: break 
-        t = time(total_min // 60, total_min % 60)
-        if t > time(11, 0): break
+        t = (datetime.combine(date.today(), t) + timedelta(minutes=30)).time()
+        if t > time(11, 0) or t < time(6, 30): break
 
-    # BLOQUE TARDE: 13:00 a 21:30
-    t = time(16, 0) # Inicia a las 16:00
-    while t <= time(20, 30): # Termina a las 20:30
+    # Tarde: 16:00 a 20:30
+    t = time(16, 0)
+    while t <= time(20, 30):
         slots.append(t)
-        total_min = (t.hour * 60) + t.minute + 30
-        if total_min > 1439: break
-        t = time(total_min // 60, total_min % 60)
+        t = (datetime.combine(date.today(), t) + timedelta(minutes=30)).time()
         if t > time(20, 30): break
-        
+    return slots
+
+def generar_slots_nutricion():
+    slots = []
+    # Mañana: 06:30 a 12:00
+    t = time(10, 0)
+    while t <= time(12, 0):
+        slots.append(t)
+        t = (datetime.combine(date.today(), t) + timedelta(minutes=30)).time()
+        if t > time(12, 0) or t < time(10, 0): break
+
+    # Tarde: 13:00 a 21:30
+    t = time(13, 0)
+    while t <= time(15, 30):
+        slots.append(t)
+        t = (datetime.combine(date.today(), t) + timedelta(minutes=30)).time()
+        if t > time(15, 30): break
+    return slots
+
+def generar_slots_kine():
+    slots = []
+    # Mañana: 06:30 a 12:00
+    t = time(6, 30)
+    while t <= time(12, 0):
+        slots.append(t)
+        t = (datetime.combine(date.today(), t) + timedelta(minutes=30)).time()
+        if t > time(12, 0) or t < time(6, 30): break
+
+    # Tarde: 13:00 a 21:30
+    t = time(13, 0)
+    while t <= time(21, 30):
+        slots.append(t)
+        t = (datetime.combine(date.today(), t) + timedelta(minutes=30)).time()
+        if t > time(21, 30): break
     return slots
 
 @login_required
@@ -437,7 +466,7 @@ def calendario_semanal(request):
     # ---------------------------
     
     dias_semana = [lunes + timedelta(days=i) for i in range(7)]
-    todos_los_slots = generar_slots_tiempo()
+    todos_los_slots = generar_slots_entrenamiento()
     slots_manana = [slot for slot in todos_los_slots if slot.hour < 14] 
     slots_tarde = [slot for slot in todos_los_slots if slot.hour >= 16]
     formulario = FichaAlumnoForm()
