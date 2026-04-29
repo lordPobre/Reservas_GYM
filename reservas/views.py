@@ -39,6 +39,7 @@ def home(request):
     
     fechas_grafico = [format(d, 'd-b') for d in fechas_ordenadas]
     totales_grafico = [conteo_dict[d] for d in fechas_ordenadas]
+    formulario = FichaAlumnoForm()
 
     return render(request, 'admin_gym/home.html', {
         'hoy': hoy,
@@ -49,11 +50,11 @@ def home(request):
         'nombre_mes': format(hoy, 'F').upper(), # Ej: ABRIL
         'fechas_grafico': json.dumps(fechas_grafico), # Datos para Chart.js
         'totales_grafico': json.dumps(totales_grafico), # Datos para Chart.js
+        'form': formulario,
     })
 
 @login_required
 def dashboard_admin(request):
-    # 1. Manejo de la fecha del calendario
     fecha_str = request.GET.get('fecha')
     if fecha_str:
         try:
@@ -63,7 +64,6 @@ def dashboard_admin(request):
     else:
         fecha_base = timezone.localdate()
 
-    # 2. NUEVO: Atrapar el ID del alumno si se hizo clic en la lista
     alumno_id = request.GET.get('alumno_id')
     alumno_detalle = None
     if alumno_id:
@@ -72,7 +72,6 @@ def dashboard_admin(request):
         except FichaAlumno.DoesNotExist:
             alumno_detalle = None
 
-    # 3. Cálculos de semanas y bloques
     lunes = fecha_base - timedelta(days=fecha_base.weekday())
     domingo = lunes + timedelta(days=6)
     semana_anterior = lunes - timedelta(days=7)
@@ -85,11 +84,8 @@ def dashboard_admin(request):
     
     dias_semana = [lunes + timedelta(days=i) for i in range(7)]
     alumnos_registrados = FichaAlumno.objects.all().order_by('nombre_completo')
-    
-    # 4. CORRECCIÓN: Usar el nombre exacto del form que importaste arriba
     form = FichaAlumnoForm()
 
-    # 5. NUEVO: Datos básicos para que el gráfico del dashboard no falle
     reservas_mes_raw = Reserva.objects.filter(
         bloque__dia__month=fecha_base.month,
         bloque__dia__year=fecha_base.year
@@ -99,7 +95,6 @@ def dashboard_admin(request):
     fechas_grafico = [format(d, 'd-b') for d in fechas_ordenadas]
     totales_grafico = [conteo_dict[d] for d in fechas_ordenadas]
 
-    # 6. Enviar todo al template
     return render(request, 'admin_gym/dashboard.html', {
         'bloques_semana': bloques_semana,
         'dias_semana': dias_semana,
@@ -111,15 +106,14 @@ def dashboard_admin(request):
         'semana_anterior': semana_anterior.strftime('%Y-%m-%d'),
         'semana_siguiente': semana_siguiente.strftime('%Y-%m-%d'),
         'total_alumnos': alumnos_registrados.count(),
-        'form': form, # El formulario para la ventana Modal
-        'alumno_detalle': alumno_detalle, # NUEVO: La ficha seleccionada
-        'fechas_grafico': json.dumps(fechas_grafico), # NUEVO: Datos para el Chart.js
-        'totales_grafico': json.dumps(totales_grafico), # NUEVO: Datos para el Chart.js
+        'form': form, 
+        'alumno_detalle': alumno_detalle,
+        'fechas_grafico': json.dumps(fechas_grafico), 
+        'totales_grafico': json.dumps(totales_grafico), 
     })
 
 @login_required
 def dashboard_nutricion(request):
-    # 1. Navegación de fechas (Igual que el calendario)
     fecha_str = request.GET.get('fecha')
     if fecha_str:
         try:
@@ -134,16 +128,13 @@ def dashboard_nutricion(request):
     semana_anterior = lunes - timedelta(days=7)
     semana_siguiente = lunes + timedelta(days=7)
     
-    # 2. Filtramos SOLO los bloques de NUTRICIÓN
     bloques_semana = HorarioBloque.objects.filter(
         dia__range=[lunes, domingo], 
         tipo='NUTRICION'
     ).prefetch_related('reservas_bloque__alumno')
     
     dias_semana = [lunes + timedelta(days=i) for i in range(7)]
-    
-    # 3. Traemos la MISMA lista de alumnos del gimnasio
-    # Solo trae a los que tienen Nutrición en True
+
     alumnos_registrados = FichaAlumno.objects.filter(plan_nutricional=True).order_by('nombre_completo')
     
     todos_los_slots = generar_slots_tiempo()
@@ -165,7 +156,6 @@ def dashboard_nutricion(request):
 
 @login_required
 def dashboard_kinesiologia(request):
-    # 1. Navegación de fechas
     fecha_str = request.GET.get('fecha')
     if fecha_str:
         try:
@@ -180,7 +170,6 @@ def dashboard_kinesiologia(request):
     semana_anterior = lunes - timedelta(days=7)
     semana_siguiente = lunes + timedelta(days=7)
     
-    # 2. Filtramos SOLO los bloques de KINESIOLOGÍA
     bloques_semana = HorarioBloque.objects.filter(
         dia__range=[lunes, domingo], 
         tipo='KINESIOLOGIA'
@@ -219,21 +208,21 @@ def generar_slots_tiempo():
     slots = []
     # BLOQUE MAÑANA: 06:30 a 12:00
     t = time(6, 30)
-    while t <= time(12, 0): # Incluimos las 12:00
+    while t <= time(11, 0): # Termina a las 11:00
         slots.append(t)
         total_min = (t.hour * 60) + t.minute + 30
-        if total_min > 1439: break # Evitar error de medianoche
+        if total_min > 1439: break 
         t = time(total_min // 60, total_min % 60)
-        if t > time(12, 0): break
+        if t > time(11, 0): break
 
     # BLOQUE TARDE: 13:00 a 21:30
-    t = time(13, 0)
-    while t <= time(21, 30):
+    t = time(16, 0) # Inicia a las 16:00
+    while t <= time(20, 30): # Termina a las 20:30
         slots.append(t)
         total_min = (t.hour * 60) + t.minute + 30
         if total_min > 1439: break
         t = time(total_min // 60, total_min % 60)
-        if t > time(21, 30): break
+        if t > time(20, 30): break
         
     return slots
 
@@ -242,34 +231,78 @@ def agendar_reserva(request):
     if request.method == 'POST':
         bloque_id = request.POST.get('bloque_id')
         alumno_id = request.POST.get('alumno_id')
+        dia_str = request.POST.get('dia')   
+        hora_str = request.POST.get('hora') 
+        redirect_to = request.POST.get('redirect_to', 'calendario_semanal')
         
-        # Capturamos de qué página viene para devolverlo al mismo lugar
-        redirect_to = request.POST.get('redirect_to', 'dashboard_admin') 
+        alumno = get_object_or_404(FichaAlumno, id=alumno_id)
+
+        # --- LÓGICA DE BLOQUE AUTOMÁTICO ---
+        if bloque_id == 'nuevo':
+            if 'nutricion' in redirect_to:
+                tipo_bloque = 'NUTRICION'
+                capacidad = 1
+            elif 'kinesiologica' in redirect_to:
+                tipo_bloque = 'KINESIOLOGIA'
+                capacidad = 1
+            else:
+                tipo_bloque = 'ENTRENAMIENTO'
+                capacidad = 10
+            
+            # 1. Calculamos la hora de fin
+            formato_hora = '%H:%M:%S' if len(hora_str) > 5 else '%H:%M'
+            hora_inicio_dt = datetime.strptime(hora_str, formato_hora)
+            hora_fin_dt = hora_inicio_dt + timedelta(minutes=30)
+            hora_fin_str = hora_fin_dt.time()
+            
+            # 2. Convertimos el día (texto) a una Fecha real de Python
+            dia_date = datetime.strptime(dia_str, '%Y-%m-%d').date()
+            
+            # 3. Creamos el bloque con la Fecha real (dia_date)
+            bloque, created = HorarioBloque.objects.get_or_create(
+                dia=dia_date,  # <--- SOLUCIÓN AL ERROR DEL WEEKDAY
+                inicio=hora_str,
+                tipo=tipo_bloque,
+                defaults={
+                    'capacidad_maxima': capacidad,
+                    'fin': hora_fin_str
+                }
+            )
+        else:
+            bloque = get_object_or_404(HorarioBloque, id=bloque_id)
         
-        if bloque_id and alumno_id:
-            try:
-                bloque = HorarioBloque.objects.get(id=bloque_id)
-                alumno = FichaAlumno.objects.get(id=alumno_id)
-                
-                # --- REGLAS DE SEGURIDAD (CANDADOS) ---
-                if bloque.tipo == 'NUTRICION' and not alumno.plan_nutricional:
-                    messages.error(request, f"Acceso denegado: {alumno.nombre_completo} no tiene Nutrición activa.")
-                    return redirect(redirect_to)
-                    
-                if bloque.tipo == 'KINESIOLOGIA' and not alumno.plan_kinesiologia:
-                    messages.error(request, f"Acceso denegado: {alumno.nombre_completo} no tiene Kinesiología activa.")
-                    return redirect(redirect_to)
-                
-                # Si pasa las pruebas, creamos la reserva
-                Reserva.objects.create(alumno=alumno, bloque=bloque)
-                messages.success(request, f"Cita agendada para {alumno.nombre_completo}.")
-                
-            except Exception as e:
-                messages.error(request, "Ocurrió un error al intentar agendar.")
-                
+        # --- 1. VALIDACIÓN DE LÍMITE SEMANAL ---
+        if bloque.tipo == 'ENTRENAMIENTO':
+            # Seguro extra: Nos aseguramos de que sea una fecha real antes de calcular
+            fecha_bloque = bloque.dia if not isinstance(bloque.dia, str) else datetime.strptime(bloque.dia, '%Y-%m-%d').date()
+            
+            lunes = fecha_bloque - timedelta(days=fecha_bloque.weekday())
+            domingo = lunes + timedelta(days=6)
+            
+            reservas_semana = Reserva.objects.filter(
+                alumno=alumno,
+                bloque__dia__range=[lunes, domingo],
+                bloque__tipo='ENTRENAMIENTO'
+            ).count()
+            
+            limite = obtener_limite_clases(alumno)
+            
+            if reservas_semana >= limite:
+                messages.error(request, f"Rechazado: {alumno.nombre_completo} alcanzó su límite de {limite} clases esta semana.")
+                return redirect(redirect_to)
+
+        # --- 2. VALIDACIÓN DE CUPOS DEL BLOQUE ---
+        if bloque.reservas_bloque.count() >= bloque.capacidad_maxima:
+            messages.error(request, "El bloque ya está lleno.")
+            return redirect(redirect_to)
+            
+        # --- 3. CREACIÓN DE LA RESERVA ---
+        Reserva.objects.get_or_create(bloque=bloque, alumno=alumno)
+        messages.success(request, f"Cita de {alumno.nombre_completo} agendada correctamente.")
+            
         return redirect(redirect_to)
         
-    return redirect('dashboard_admin')
+    return redirect('home')
 
 @login_required
 def lista_alumnos(request):
@@ -330,10 +363,10 @@ def crear_bloque_manual(request):
             # --- NUEVOS RANGOS HORARIOS ---
             if jornada == 'manana':
                 current_time = time(6, 30)
-                end_time = time(12, 30) # Llega hasta las 12:30 para incluir el bloque de las 12:00
+                end_time = time(11, 30) # Para incluir el bloque de las 11:00
             elif jornada == 'tarde':
-                current_time = time(13, 0) # Inicia a las 13:00
-                end_time = time(22, 0) # Llega hasta las 22:00 para incluir el bloque de las 21:30
+                current_time = time(16, 0)
+                end_time = time(21, 0) # Llega hasta las 22:00 para incluir el bloque de las 21:30
             else:
                 return redirect('calendario_semanal')
                 
@@ -363,7 +396,6 @@ def crear_bloque_manual(request):
 @login_required
 def calendario_semanal(request):
     fecha_str = request.GET.get('fecha')
-    
     if fecha_str:
         try:
             fecha_base = datetime.strptime(fecha_str, '%Y-%m-%d').date()
@@ -383,15 +415,32 @@ def calendario_semanal(request):
         tipo='ENTRENAMIENTO' 
     ).prefetch_related('reservas_bloque__alumno')
     
+    # --- LA MAGIA DEL FILTRO ---
+    alumnos_activos = FichaAlumno.objects.filter(activo=True)
+    alumnos_habilitados = []
+    
+    for alumno in alumnos_activos:
+        limite = obtener_limite_clases(alumno)
+        
+        # Contamos cuántas veces ha reservado ENTRE ESTE LUNES Y DOMINGO
+        reservas_semana_actual = Reserva.objects.filter(
+            alumno=alumno,
+            bloque__dia__range=[lunes, domingo],
+            bloque__tipo='ENTRENAMIENTO'
+        ).count()
+        
+        # Si aún le quedan clases, lo agregamos a la lista
+        if reservas_semana_actual < limite:
+            # Le agregamos una propiedad temporal para mostrar cuántas le quedan
+            alumno.cupos_restantes = limite - reservas_semana_actual
+            alumnos_habilitados.append(alumno)
+    # ---------------------------
+    
     dias_semana = [lunes + timedelta(days=i) for i in range(7)]
-    alumnos_registrados = FichaAlumno.objects.all().order_by('nombre_completo')
-    
     todos_los_slots = generar_slots_tiempo()
-    slots_manana = [slot for slot in todos_los_slots if slot.hour <= 12] 
-    slots_tarde = [slot for slot in todos_los_slots if slot.hour >= 13] 
-    
-    # NUEVO: Instanciamos el formulario para el modal
-    form = FichaAlumnoForm()
+    slots_manana = [slot for slot in todos_los_slots if slot.hour < 14] 
+    slots_tarde = [slot for slot in todos_los_slots if slot.hour >= 16]
+    formulario = FichaAlumnoForm()
 
     return render(request, 'admin_gym/calendario_semanal.html', {
         'bloques_semana': bloques_semana,
@@ -402,8 +451,8 @@ def calendario_semanal(request):
         'domingo': domingo,
         'semana_anterior': semana_anterior.strftime('%Y-%m-%d'),
         'semana_siguiente': semana_siguiente.strftime('%Y-%m-%d'),
-        'alumnos_registrados': alumnos_registrados,
-        'form': form, # Pasamos el formulario al template
+        'alumnos_registrados': alumnos_habilitados,
+        'form': formulario, 
     })
 
 @login_required
@@ -506,3 +555,19 @@ def toggle_estado_alumno(request, pk):
         messages.success(request, f"El alumno {alumno.nombre_completo} ha sido {estado}.")
         
     return redirect('lista_alumnos')
+
+def obtener_limite_clases(alumno):
+    if not alumno.plan: 
+        return 0
+    
+    plan_texto = alumno.get_plan_display().lower()
+    
+    if '1 vez' in plan_texto: return 1
+    if '2 veces' in plan_texto: return 2
+    if '3 veces' in plan_texto: return 3
+    if '4 veces' in plan_texto: return 4
+    if '5 veces' in plan_texto: return 5
+    if '6 veces' in plan_texto: return 6
+    if 'libre' in plan_texto or 'ilimitado' in plan_texto: return 99
+    
+    return 0

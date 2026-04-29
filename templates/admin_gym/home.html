@@ -2,162 +2,264 @@
 
 {% block content %}
 <style>
-    /* MANTENEMOS TUS ESTILOS EXACTOS */
-    .modern-card {
-        border: none;
-        border-radius: 16px;
-        background: #ffffff;
-        box-shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* VARIABLES DE COLOR PREMIUM SaaS */
+    :root {
+        --kh-primary: #0d6efd;
+        --kh-glass: rgba(255, 255, 255, 0.85);
+        --kh-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
-    .modern-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 32px rgba(149, 157, 165, 0.2);
-    }
-    .text-gradient {
-        background: linear-gradient(45deg, #FF512F, #DD2476);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-    }
-    .clock-widget {
-        background: linear-gradient(135deg, #111 0%, #222 100%);
-        color: #00ffcc;
-        border-radius: 16px;
-        border: 1px solid #333;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    }
-    .weather-widget {
-        background: linear-gradient(135deg, #f12711 0%, #f5af19 100%);
+
+    /* Ocultar scrollbar para la lista de asistencias */
+    .asistencia-scroll::-webkit-scrollbar { width: 6px; }
+    .asistencia-scroll::-webkit-scrollbar-thumb { background: #e9ecef; border-radius: 4px; }
+
+    .welcome-section {
+        background: linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%);
+        border-radius: 24px;
         color: white;
-        border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(241, 39, 17, 0.3);
+        padding: 40px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     }
-    .list-item-modern {
-        border-radius: 10px;
-        transition: background 0.2s;
-        border-left: 4px solid transparent;
+
+    .welcome-section::after {
+        content: ""; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px;
+        background: rgba(13, 110, 253, 0.3); filter: blur(80px); border-radius: 50%;
     }
-    .list-item-modern:hover {
-        background: #f8f9fa;
+
+    .stat-card {
+        border: none;
+        border-radius: 20px;
+        background: var(--kh-glass);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--kh-shadow);
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.4);
     }
-    .border-entrenamiento { border-left-color: #0d6efd; }
-    .border-nutricion { border-left-color: #198754; }
-    .border-kinesiologia { border-left-color: #dc3545; }
+    .stat-card:hover { transform: translateY(-8px); }
+
+    .widget-box {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        padding: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(5px);
+    }
+
+    .asistencia-item {
+        border-radius: 12px;
+        margin-bottom: 8px;
+        border: 1px solid #f1f3f5;
+        background: white;
+        transition: all 0.2s;
+    }
+    .asistencia-item:hover { border-color: var(--kh-primary); background: #f8faff; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+    .indicator { width: 4px; border-radius: 4px; margin-right: 10px; }
 </style>
 
-<div class="container-fluid py-4">
-    
-    <div class="row g-4 mb-4 align-items-center">
-        <div class="col-md-6">
-            <h1 class="display-5 mb-1">¡Hola, <span class="text-gradient">{{ user.username|capfirst }}</span>!</h1>
-            <p class="text-muted fs-5 mb-0">Bienvenido al centro de mando de <strong>Kamehouse Gym</strong>.</p>
-        </div>
-        <div class="col-md-3">
-            <div class="clock-widget p-3 text-center h-100 d-flex flex-column justify-content-center">
-                <h2 id="reloj" class="mb-0 fw-bold" style="letter-spacing: 2px;">00:00:00</h2>
-                <div class="text-uppercase small opacity-75 mt-1">{{ hoy|date:"l d \d\e F" }}</div>
+<div class="container-fluid py-2">
+    <div class="welcome-section">
+        <div class="row align-items-center">
+            <div class="col-md-7 position-relative" style="z-index: 2;">
+                <h4 class="opacity-75 mb-1">¡Buen trabajo hoy!</h4>
+                <h1 class="display-4 fw-bold mb-3">Hola, {{ user.username|capfirst }}</h1>
+                <p class="lead opacity-75">Tienes un día movido en <strong>Kamehouse Gym</strong>. Revisa la asistencia de hoy abajo.</p>
+                <div class="d-flex gap-2 mt-4">
+                    <a href="{% url 'calendario_semanal' %}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Ver Calendario</a>
+                    <button class="btn btn-outline-light rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#modalAlumno">Nuevo Alumno</button>
+                </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="weather-widget p-3 h-100 d-flex flex-column justify-content-center">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-start">
-                        <div class="display-6 fw-bold" id="clima-grados">--°</div>
-                        <small id="clima-desc" class="fw-semibold">Cargando...</small>
+            <div class="col-md-5 d-none d-md-block text-end position-relative" style="z-index: 2;">
+                <div class="d-inline-flex flex-column gap-3">
+                    <div class="widget-box text-center">
+                        <h2 id="reloj" class="m-0 fw-bold text-info" style="font-family: monospace; font-size: 2.5rem; letter-spacing: 2px;">00:00:00</h2>
+                        <small class="text-uppercase opacity-75 fw-bold">{{ hoy|date:"l d \d\e F" }}</small>
                     </div>
-                    <i id="clima-icon" class="bi bi-hourglass-split fs-1"></i>
+                    <div class="widget-box d-flex align-items-center justify-content-between px-4">
+                        <div class="text-start">
+                            <span class="display-6 fw-bold" id="clima-grados">--°</span>
+                            <br><small id="clima-desc">Cargando...</small>
+                        </div>
+                        <i id="clima-icon" class="bi bi-cloud-sun fs-1 text-warning ms-4"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card modern-card">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-lightning-charge-fill text-warning me-2"></i>ASISTENCIA DE HOY
+    <div class="row g-4 mb-4">
+        
+        <div class="col-lg-4">
+            <div class="stat-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-dark">
+                        <i class="bi bi-lightning text-primary me-2"></i>Entrenamiento
                     </h5>
+                    <span class="badge bg-light text-muted border px-3 py-2 rounded-pill">Hoy</span>
                 </div>
-                <div class="card-body px-4 pb-4">
-                    <div class="row g-4">
-                        <div class="col-md-4 border-end">
-                            <h6 class="text-primary fw-bold mb-3 small text-uppercase">Entrenamiento</h6>
-                            <div class="d-flex flex-column gap-2">
-                                {% for bloque in entrenamientos %}
-                                    {% for reserva in bloque.reservas_bloque.all %}
-                                    <div class="d-flex justify-content-between align-items-center p-2 border list-item-modern border-entrenamiento">
-                                        <span class="small fw-semibold text-dark">{{ reserva.alumno.nombre_completo|truncatechars:20 }}</span>
-                                        <span class="badge bg-light text-primary border">{{ bloque.inicio|time:"H:i" }}</span>
-                                    </div>
-                                    {% endfor %}
-                                {% empty %}
-                                    <p class="text-muted small text-center py-3">Sin citas</p>
-                                {% endfor %}
+                <div class="asistencia-scroll pe-2" style="max-height: 250px; overflow-y: auto;">
+                    {% for bloque in entrenamientos %}
+                        {% for reserva in bloque.reservas_bloque.all %}
+                        <div class="asistencia-item p-3 d-flex align-items-center">
+                            <div class="indicator bg-primary">&nbsp;</div>
+                            <div class="flex-grow-1">
+                                <h6 class="m-0 fw-bold text-dark small">{{ reserva.alumno.nombre_completo }}</h6>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ bloque.inicio|time:"H:i" }}</small>
                             </div>
+                            <a href="{% url 'detalle_alumno' reserva.alumno.pk %}" class="btn btn-sm btn-light border-0 rounded-circle text-primary"><i class="bi bi-eye"></i></a>
                         </div>
-                        
-                        <div class="col-md-4 border-end">
-                            <h6 class="text-success fw-bold mb-3 small text-uppercase">Nutrición</h6>
-                            <div class="d-flex flex-column gap-2">
-                                {% for bloque in nutricion %}
-                                    {% for reserva in bloque.reservas_bloque.all %}
-                                    <div class="d-flex justify-content-between align-items-center p-2 border list-item-modern border-nutricion">
-                                        <span class="small fw-semibold text-dark">{{ reserva.alumno.nombre_completo|truncatechars:20 }}</span>
-                                        <span class="badge bg-light text-success border">{{ bloque.inicio|time:"H:i" }}</span>
-                                    </div>
-                                    {% endfor %}
-                                {% empty %}
-                                    <p class="text-muted small text-center py-3">Sin citas</p>
-                                {% endfor %}
-                            </div>
+                        {% endfor %}
+                    {% empty %}
+                        <div class="text-center py-4 opacity-50">
+                            <i class="bi bi-calendar-x fs-2"></i>
+                            <p class="small mt-2">No hay citas registradas</p>
                         </div>
-
-                        <div class="col-md-4">
-                            <h6 class="text-danger fw-bold mb-3 small text-uppercase">Kinesiología</h6>
-                            <div class="d-flex flex-column gap-2">
-                                {% for bloque in kinesiologia %}
-                                    {% for reserva in bloque.reservas_bloque.all %}
-                                    <div class="d-flex justify-content-between align-items-center p-2 border list-item-modern border-kinesiologia">
-                                        <span class="small fw-semibold text-dark">{{ reserva.alumno.nombre_completo|truncatechars:20 }}</span>
-                                        <span class="badge bg-light text-danger border">{{ bloque.inicio|time:"H:i" }}</span>
-                                    </div>
-                                    {% endfor %}
-                                {% empty %}
-                                    <p class="text-muted small text-center py-3">Sin citas</p>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
+
+        <div class="col-lg-4">
+            <div class="stat-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-dark">
+                        <i class="bi bi-apple text-success me-2"></i>Nutrición
+                    </h5>
+                    <span class="badge bg-light text-muted border px-3 py-2 rounded-pill">Hoy</span>
+                </div>
+                <div class="asistencia-scroll pe-2" style="max-height: 250px; overflow-y: auto;">
+                    {% for bloque in nutricion %}
+                        {% for reserva in bloque.reservas_bloque.all %}
+                        <div class="asistencia-item p-3 d-flex align-items-center">
+                            <div class="indicator bg-success">&nbsp;</div>
+                            <div class="flex-grow-1">
+                                <h6 class="m-0 fw-bold text-dark small">{{ reserva.alumno.nombre_completo }}</h6>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ bloque.inicio|time:"H:i" }}</small>
+                            </div>
+                            <a href="{% url 'detalle_alumno' reserva.alumno.pk %}" class="btn btn-sm btn-light border-0 rounded-circle text-success"><i class="bi bi-eye"></i></a>
+                        </div>
+                        {% endfor %}
+                    {% empty %}
+                        <div class="text-center py-4 opacity-50">
+                            <i class="bi bi-calendar-x fs-2"></i>
+                            <p class="small mt-2">No hay citas registradas</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="stat-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-dark">
+                        <i class="bi bi-heart-pulse text-danger me-2"></i>Kinesiología
+                    </h5>
+                    <span class="badge bg-light text-muted border px-3 py-2 rounded-pill">Hoy</span>
+                </div>
+                <div class="asistencia-scroll pe-2" style="max-height: 250px; overflow-y: auto;">
+                    {% for bloque in kinesiologia %}
+                        {% for reserva in bloque.reservas_bloque.all %}
+                        <div class="asistencia-item p-3 d-flex align-items-center">
+                            <div class="indicator bg-danger">&nbsp;</div>
+                            <div class="flex-grow-1">
+                                <h6 class="m-0 fw-bold text-dark small">{{ reserva.alumno.nombre_completo }}</h6>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ bloque.inicio|time:"H:i" }}</small>
+                            </div>
+                            <a href="{% url 'detalle_alumno' reserva.alumno.pk %}" class="btn btn-sm btn-light border-0 rounded-circle text-danger"><i class="bi bi-eye"></i></a>
+                        </div>
+                        {% endfor %}
+                    {% empty %}
+                        <div class="text-center py-4 opacity-50">
+                            <i class="bi bi-calendar-x fs-2"></i>
+                            <p class="small mt-2">No hay citas registradas</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
     </div>
 
     <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm bg-success text-white p-4 rounded-4 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex justify-content-between align-items-center">
+        <div class="col-lg-4">
+            <div class="stat-card p-4 bg-primary text-white h-100 d-flex flex-column justify-content-between" style="border:none;">
+                <div class="d-flex justify-content-between align-items-start mb-4">
                     <div>
-                        <h6 class="text-uppercase fw-bold opacity-75 m-0">Total Alumnos</h6>
-                        <h2 class="display-5 fw-bold m-0">{{ total_alumnos }}</h2>
+                        <h6 class="opacity-75 fw-bold text-uppercase small">Comunidad Total</h6>
+                        <h1 class="display-3 fw-bold m-0">{{ total_alumnos }}</h1>
                     </div>
-                    <i class="bi bi-people-fill display-4 opacity-50"></i>
+                    <i class="bi bi-people display-4 opacity-25"></i>
                 </div>
-                <a href="/gym/alumnos/" class="text-white mt-3 d-block small text-decoration-none fw-bold">
-                    VER DIRECTORIO <i class="bi bi-arrow-right ms-1"></i>
-                </a>
+                <a href="{% url 'lista_alumnos' %}" class="btn btn-light w-100 rounded-pill fw-bold text-primary shadow-sm mt-auto">Gestionar Alumnos</a>
             </div>
         </div>
-
-        <div class="col-md-8">
-            <div class="card modern-card p-4 h-100">
-                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 text-uppercase">Reservas de {{ nombre_mes }}</h6>
-                <div style="height: 180px;">
-                    <canvas id="graficoMesHome"></canvas>
-                </div>
+        <div class="col-lg-8">
+            <div class="stat-card p-4 h-100">
+                <h6 class="fw-bold mb-4 text-secondary text-uppercase small">Asistencia de {{ nombre_mes }}</h6>
+                <div style="height: 200px;"><canvas id="graficoMesHome"></canvas></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAlumno" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <form method="post" action="{% url 'registrar_alumno' %}">
+                {% csrf_token %}
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold">NUEVA FICHA DE ASESORÍA</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="alert alert-info py-2 small">
+                        <i class="bi bi-info-circle me-2"></i> Completa todos los campos según la ficha de evaluación.
+                    </div>
+                    <div class="row g-3">
+                        {% for field in form %}
+                            {% if field.name != 'plan' and field.name != 'plan_nutricional' and field.name != 'plan_kinesiologia' %}
+                                <div class="col-md-6 mb-2">
+                                    <label class="fw-bold text-secondary small">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="text-muted" style="font-size: 0.75rem;">{{ field.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        <div class="col-12 mt-4 border-top pt-3">
+                            <label class="form-label fw-bold text-dark small text-uppercase">
+                                <i class="bi bi-card-checklist text-primary me-1"></i> Membresía Contratada
+                            </label>
+                            {{ form.plan }}
+                        </div>
+                        <div class="col-12 mt-3">
+                            <div class="card bg-light border-0 p-3 rounded-4 shadow-sm">
+                                <h6 class="fw-bold text-secondary small text-uppercase mb-3">
+                                    <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Servicios Clínicos Habilitados
+                                </h6>
+                                <div class="d-flex justify-content-around align-items-center">
+                                    <div class="form-check form-switch fs-5">
+                                        {{ form.plan_nutricional }}
+                                        <label class="form-check-label fw-semibold text-dark fs-6 mt-1 ms-2">Nutrición</label>
+                                    </div>
+                                    <div class="form-check form-switch fs-5">
+                                        {{ form.plan_kinesiologia }}
+                                        <label class="form-check-label fw-semibold text-dark fs-6 mt-1 ms-2">Kinesiología</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">GUARDAR REGISTRO</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -185,28 +287,33 @@
             if (code === 0) { icon = 'bi-sun'; desc = 'Despejado'; }
             else if (code >= 1 && code <= 3) { icon = 'bi-cloud-sun'; desc = 'Nubosidad'; }
             else if (code >= 51 && code <= 67) { icon = 'bi-cloud-rain'; desc = 'Lluvia'; }
-            document.getElementById('clima-icon').className = `bi ${icon} fs-1`;
+            document.getElementById('clima-icon').className = `bi ${icon} fs-1 text-warning`;
             document.getElementById('clima-desc').innerText = desc;
+        }).catch(()=> {
+            document.getElementById('clima-desc').innerText = "Sin conexión";
         });
 
-        const fechas = {{ fechas_grafico|safe }};
-        const totales = {{ totales_grafico|safe }};
-        const ctx = document.getElementById('graficoMesHome').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: fechas,
-                datasets: [{
-                    label: 'Asistencias',
-                    data: totales,
-                    backgroundColor: 'rgba(25, 135, 84, 0.7)',
-                    borderColor: 'rgba(25, 135, 84, 1)',
-                    borderWidth: 1,
-                    borderRadius: 5
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-        });
+        const fechas = {{ fechas_grafico|safe|default:"[]" }};
+        const totales = {{ totales_grafico|safe|default:"[]" }};
+        
+        if (fechas.length > 0) {
+            const ctx = document.getElementById('graficoMesHome').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: fechas,
+                    datasets: [{
+                        label: 'Asistencias',
+                        data: totales,
+                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
     });
 </script>
 {% endblock %}

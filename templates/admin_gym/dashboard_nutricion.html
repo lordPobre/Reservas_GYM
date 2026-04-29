@@ -12,7 +12,7 @@
 </style>
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 mt-2">
         <h2 class="fw-bold m-0 text-success"><i class="bi bi-apple me-2"></i>RESERVA NUTRICIONAL</h2>
         
         <div class="d-flex gap-3 align-items-center">
@@ -29,21 +29,21 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold m-0">
-            <span class="text-gradient">
-                {% if '/nutricion/' in request.path %}NUTRICIÓN{% else %}KINESIOLOGÍA{% endif %}
+        <div>
+            <h2 class="fw-bold m-0">
+                <span class="text-gradient">
+                    {% if '/nutricion/' in request.path %}NUTRICIÓN{% else %}KINESIOLOGÍA{% endif %}
+                </span>
+            </h2>
+            <p class="text-muted fw-semibold m-0">Gestión de citas y seguimiento clínico</p>
+        </div>
+        
+        <div class="text-end">
+            <span class="badge bg-dark px-3 py-2 rounded-pill">
+                {{ alumnos_registrados.count }} Alumnos Habilitados
             </span>
-        </h2>
-        <p class="text-muted fw-semibold m-0">Gestión de citas y seguimiento clínico</p>
+        </div>
     </div>
-    
-    <div class="text-end">
-        <span class="badge bg-dark px-3 py-2 rounded-pill">
-            {{ alumnos_registrados.count }} Alumnos Habilitados
-        </span>
-    </div>
-</div>
 
     <div class="mb-3">
         <label class="form-label fw-bold small text-uppercase">Seleccionar Paciente/Alumno</label>
@@ -73,51 +73,62 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for time_slot in slots_manana|json_script:"slots_dummy"|default:slots_manana %}{% endfor %}
-
                     {% for time_slot in slots_manana|add:slots_tarde %}
-                        {% if time_slot == slots_tarde.0 %}
-                            <tr class="bg-light"><td colspan="8" class="py-2 text-muted small fw-bold text-center">RECESO / CAMBIO DE JORNADA</td></tr>
-                        {% endif %}
-                        <tr>
-                            <td class="fw-bold sticky-col align-middle">{{ time_slot|time:"H:i" }}</td>
-                            {% for dia in dias_semana %}
-                                <td class="p-0 reserva-cell">
-                                    {% get_bloque bloques_semana dia time_slot as bloque %}
-                                    
-                                    {% if bloque %}
-                                        {% with reservas=bloque.reservas_bloque.all ocupacion=bloque.reservas_bloque.count %}
-                                            <div class="w-100 h-100 p-2 {% if ocupacion >= bloque.capacidad_maxima %}bg-danger bg-opacity-10 border-danger{% else %}bg-info bg-opacity-10 border-info{% endif %} border rounded transition-hover"
-                                                 style="min-height: 80px; text-align: left;"
+                        
+                        {% if time_slot.hour >= 10 and time_slot.hour <= 15 %}
+                        
+                            {% if time_slot == slots_tarde.0 %}
+                                <tr class="bg-light"><td colspan="8" class="py-2 text-muted small fw-bold text-center">RECESO / CAMBIO DE JORNADA</td></tr>
+                            {% endif %}
+                            
+                            <tr>
+                                <td class="fw-bold sticky-col align-middle">{{ time_slot|time:"H:i" }}</td>
+                                {% for dia in dias_semana %}
+                                    <td class="p-0 reserva-cell">
+                                        {% get_bloque bloques_semana dia time_slot as bloque %}
+                                        
+                                        {% if bloque %}
+                                            {% with reservas=bloque.reservas_bloque.all ocupacion=bloque.reservas_bloque.count %}
+                                                <div class="w-100 h-100 p-2 {% if ocupacion >= bloque.capacidad_maxima %}bg-danger bg-opacity-10 border-danger{% else %}bg-info bg-opacity-10 border-info{% endif %} border rounded transition-hover"
+                                                     style="min-height: 80px; text-align: left;"
+                                                     data-bs-toggle="modal" 
+                                                     data-bs-target="#modalAgendarNutri"
+                                                     onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}', '', '')">
+                                                    
+                                                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 mb-2 pb-1">
+                                                        <span class="fw-bold {% if ocupacion >= bloque.capacidad_maxima %}text-danger{% else %}text-info{% endif %}" style="font-size: 0.65rem;">
+                                                            {{ ocupacion }}/{{ bloque.capacidad_maxima }} CUPOS
+                                                        </span>
+                                                        <i class="bi bi-plus-circle text-muted" style="font-size: 0.7rem;"></i>
+                                                    </div>
+
+                                                    <div class="d-flex flex-column gap-1">
+                                                        {% for reserva in reservas %}
+                                                            <div class="text-dark text-truncate" style="font-size: 0.75rem; line-height: 1.2; font-weight: 500;" title="{{ reserva.alumno.nombre_completo }}">
+                                                                • {{ reserva.alumno.nombre_completo|truncatechars:18 }}
+                                                            </div>
+                                                        {% empty %}
+                                                            <div class="text-muted fst-italic text-center mt-2" style="font-size: 0.7rem;">Bloque libre</div>
+                                                        {% endfor %}
+                                                    </div>
+                                                    
+                                                </div>
+                                            {% endwith %}
+                                        {% else %}
+                                            <div class="w-100 h-100 p-2 bg-light d-flex flex-column justify-content-center align-items-center transition-hover"
+                                                 style="min-height: 80px; border: 2px dashed #dee2e6; opacity: 0.6; cursor: pointer;"
                                                  data-bs-toggle="modal" 
                                                  data-bs-target="#modalAgendarNutri"
-                                                 onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
-                                                
-                                                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 mb-2 pb-1">
-                                                    <span class="fw-bold {% if ocupacion >= bloque.capacidad_maxima %}text-danger{% else %}text-info{% endif %}" style="font-size: 0.65rem;">
-                                                        {{ ocupacion }}/{{ bloque.capacidad_maxima }} CUPOS
-                                                    </span>
-                                                    <i class="bi bi-plus-circle text-muted" style="font-size: 0.7rem;"></i>
-                                                </div>
-
-                                                <div class="d-flex flex-column gap-1">
-                                                    {% for reserva in reservas %}
-                                                        <div class="text-dark text-truncate" style="font-size: 0.75rem; line-height: 1.2; font-weight: 500;" title="{{ reserva.alumno.nombre_completo }}">
-                                                            • {{ reserva.alumno.nombre_completo|truncatechars:18 }}
-                                                        </div>
-                                                    {% empty %}
-                                                        <div class="text-muted fst-italic text-center mt-2" style="font-size: 0.7rem;">Bloque libre</div>
-                                                    {% endfor %}
-                                                </div>
-                                                
+                                                 onclick="abrirDetalleBloque('nuevo', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}', '{{ dia|date:'Y-m-d' }}', '{{ time_slot|time:'H:i:s' }}')">
+                                                <i class="bi bi-plus-circle text-success fs-4"></i>
+                                                <small class="fw-bold text-success mt-1" style="font-size: 0.65rem;">AGENDAR CITA</small>
                                             </div>
-                                        {% endwith %}
-                                    {% else %}
-                                        <div class="text-muted opacity-25 d-flex align-items-center justify-content-center" style="min-height: 80px;">--</div>
-                                    {% endif %}
-                                </td>
-                            {% endfor %}
-                        </tr>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                            
+                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
@@ -126,7 +137,7 @@
 </div>
 
 <div class="modal fade" id="modalNuevoBloqueNutri" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
       <div class="modal-content border-0 shadow">
         <form method="post" action="{% url 'crear_bloque_manual' %}">
           {% csrf_token %}
@@ -145,8 +156,8 @@
                   <label class="fw-bold text-secondary">2. Seleccionar Jornada</label>
                   <select name="jornada" class="form-select form-select-lg" required>
                       <option value="" disabled selected>-- Elegir Mañana o Tarde --</option>
-                      <option value="manana">☀️ Mañana (06:30 a 12:00)</option>
-                      <option value="tarde">🌙 Tarde (13:00 a 21:30)</option>
+                      <option value="manana">☀️ Mañana (10:00 a 12:00)</option>
+                      <option value="tarde">🌙 Tarde (13:00 a 15:00)</option>
                   </select>
               </div>
               <div class="mb-3">
@@ -165,7 +176,7 @@
 </div>
 
 <div class="modal fade" id="modalAgendarNutri" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
       <div class="modal-content border-0 shadow">
           <div class="modal-header bg-dark text-white">
             <h5 class="modal-title"><i class="bi bi-apple me-2"></i>Detalle y Cita Nutricional</h5>
@@ -192,6 +203,8 @@
                   <form method="post" action="{% url 'agendar_reserva' %}">
                       {% csrf_token %}
                       <input type="hidden" name="bloque_id" id="inputBloqueId">
+                      <input type="hidden" name="dia" id="inputDia">
+                      <input type="hidden" name="hora" id="inputHora">
                       <input type="hidden" name="redirect_to" value="reserva_nutricional">
                       
                       <label class="fw-bold mb-2 text-success small">AÑADIR PACIENTE:</label>
@@ -212,16 +225,26 @@
 </div>
 
 <script>
-    function abrirDetalleBloque(bloqueId, diaTexto, horaTexto) {
-        // Vinculamos el ID a los formularios de agendar y eliminar bloque
+    function abrirDetalleBloque(bloqueId, diaTexto, horaTexto, diaFormatoDB, horaFormatoDB) {
         document.getElementById('inputBloqueId').value = bloqueId;
         document.getElementById('inputEliminarBloqueId').value = bloqueId;
-        document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
         
+        const inputDia = document.getElementById('inputDia');
+        const inputHora = document.getElementById('inputHora');
+        if (inputDia) inputDia.value = diaFormatoDB || '';
+        if (inputHora) inputHora.value = horaFormatoDB || '';
+
         const contenedor = document.getElementById('contenedorAsistentes');
+
+        if (bloqueId === 'nuevo') {
+            document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs (Nuevo)';
+            contenedor.innerHTML = '<div class="list-group list-group-flush border rounded mb-3"><div class="list-group-item py-4 text-center text-success fw-bold"><i class="bi bi-magic fs-4 d-block mb-2"></i>Horario disponible.<br><small class="text-muted fw-normal">Se activará automáticamente al agendar al paciente.</small></div></div>';
+            return;
+        }
+
+        document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
         contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-success"></div></div>';
 
-        // Capturamos el token de seguridad para poder eliminar pacientes individualmente
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         fetch(`/gym/bloque/${bloqueId}/detalle/`)
@@ -230,7 +253,6 @@
                 let html = '<div class="list-group list-group-flush border rounded mb-3">';
                 if(data.asistentes.length > 0) {
                     data.asistentes.forEach(a => {
-                        // Aquí se dibuja el paciente junto con el botón de la cruz roja
                         html += `<div class="list-group-item py-2 small d-flex justify-content-between align-items-center border-start border-success border-3">
                                     <div>
                                         <span class="fw-bold d-block">${a.nombre}</span>

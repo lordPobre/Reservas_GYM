@@ -4,18 +4,14 @@
 
 {% block content %}
 <style>
-    /* Estilos del Calendario */
     .reserva-cell { cursor: pointer; transition: all 0.2s; vertical-align: top; }
     .reserva-cell:hover { filter: brightness(0.9); transform: scale(1.02); }
     .table-fixed { table-layout: fixed; }
     .sticky-col { position: sticky; left: 0; background-color: #f8f9fa !important; z-index: 5; border-right: 2px solid #dee2e6 !important; }
     .transition-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
 
-    /* Estilos para el Formulario del Modal */
     #modalAlumno p { margin-bottom: 1rem; display: block; }
     #modalAlumno label { font-weight: 600; margin-bottom: 0.3rem; color: #495057; }
-    
-    /* CORRECCIÓN CSS: Excluimos checkboxes para no deformar los switches */
     #modalAlumno input:not([type="checkbox"]), 
     #modalAlumno select, 
     #modalAlumno textarea {
@@ -26,11 +22,10 @@
 </style>
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 mt-2">
         <h2 class="fw-bold m-0"><i class="bi bi-calendar3 me-2"></i>CALENDARIO SEMANAL</h2>
         
         <div class="d-flex gap-3 align-items-center">
-
             <button class="btn btn-outline-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoBloque">
                 <i class="bi bi-clock-history me-2"></i>CREAR BLOQUES
             </button>
@@ -65,11 +60,9 @@
                     {% for time_slot in slots_manana|json_script:"slots_dummy"|default:slots_manana %}{% endfor %}
 
                     {% for time_slot in slots_manana|add:slots_tarde %}
-                        
                         {% if time_slot == slots_tarde.0 %}
                             <tr class="bg-light"><td colspan="8" class="py-2 text-muted small fw-bold text-center">RECESO / CAMBIO DE JORNADA</td></tr>
                         {% endif %}
-                        
                         <tr>
                             <td class="fw-bold sticky-col align-middle">{{ time_slot|time:"H:i" }}</td>
                             {% for dia in dias_semana %}
@@ -82,15 +75,13 @@
                                                  style="min-height: 80px; text-align: left;"
                                                  data-bs-toggle="modal" 
                                                  data-bs-target="#modalAgendar"
-                                                 onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}')">
-                                                
-                                                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 mb-2 pb-1">
+                                                 onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}', '', '')">
+                                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 mt-2">
                                                     <span class="fw-bold {% if ocupacion >= bloque.capacidad_maxima %}text-danger{% else %}text-success{% endif %}" style="font-size: 0.65rem;">
                                                         {{ ocupacion }}/{{ bloque.capacidad_maxima }} CUPOS
                                                     </span>
                                                     <i class="bi bi-plus-circle text-muted" style="font-size: 0.7rem;"></i>
                                                 </div>
-
                                                 <div class="d-flex flex-column gap-1">
                                                     {% for reserva in reservas %}
                                                         <div class="text-dark text-truncate" style="font-size: 0.75rem; line-height: 1.2; font-weight: 500;" title="{{ reserva.alumno.nombre_completo }}">
@@ -100,11 +91,17 @@
                                                         <div class="text-muted fst-italic text-center mt-2" style="font-size: 0.7rem;">Bloque libre</div>
                                                     {% endfor %}
                                                 </div>
-                                                
                                             </div>
                                         {% endwith %}
                                     {% else %}
-                                        <div class="text-muted opacity-25 d-flex align-items-center justify-content-center" style="min-height: 80px;">--</div>
+                                        <div class="w-100 h-100 p-2 bg-light d-flex flex-column justify-content-center align-items-center transition-hover"
+                                             style="min-height: 80px; border: 2px dashed #dee2e6; opacity: 0.6; cursor: pointer;"
+                                             data-bs-toggle="modal" 
+                                             data-bs-target="#modalAgendar"
+                                             onclick="abrirDetalleBloque('nuevo', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}', '{{ dia|date:'Y-m-d' }}', '{{ time_slot|time:'H:i:s' }}')">
+                                            <i class="bi bi-plus-circle text-primary fs-4"></i>
+                                            <small class="fw-bold text-primary mt-1" style="font-size: 0.65rem;">AGENDAR</small>
+                                        </div>
                                     {% endif %}
                                 </td>
                             {% endfor %}
@@ -117,7 +114,7 @@
 </div>
 
 <div class="modal fade" id="modalAlumno" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
         <div class="modal-content border-0 shadow">
             <form method="post" action="{% url 'registrar_alumno' %}">
                 {% csrf_token %}
@@ -129,7 +126,6 @@
                     <div class="alert alert-info py-2 small">
                         <i class="bi bi-info-circle me-2"></i> Completa todos los campos según la ficha de evaluación física.
                     </div>
-                    
                     <div class="row g-3">
                         {% for field in form %}
                             {% if field.name != 'plan' and field.name != 'plan_nutricional' and field.name != 'plan_kinesiologia' %}
@@ -142,26 +138,22 @@
                                 </div>
                             {% endif %}
                         {% endfor %}
-
                         <div class="col-12 mt-4 border-top pt-3">
                             <label class="form-label fw-bold text-dark small text-uppercase">
                                 <i class="bi bi-card-checklist text-primary me-1"></i> Membresía Contratada
                             </label>
                             {{ form.plan }}
                         </div>
-
                         <div class="col-12 mt-3">
                             <div class="card bg-light border-0 p-3 rounded-4 shadow-sm">
                                 <h6 class="fw-bold text-secondary small text-uppercase mb-3">
                                     <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Servicios Clínicos Habilitados
                                 </h6>
-                                
                                 <div class="d-flex justify-content-around align-items-center">
                                     <div class="form-check form-switch fs-5">
                                         {{ form.plan_nutricional }}
                                         <label class="form-check-label fw-semibold text-dark fs-6 mt-1 ms-2">Nutrición</label>
                                     </div>
-                                    
                                     <div class="form-check form-switch fs-5">
                                         {{ form.plan_kinesiologia }}
                                         <label class="form-check-label fw-semibold text-dark fs-6 mt-1 ms-2">Kinesiología</label>
@@ -170,7 +162,7 @@
                             </div>
                         </div>
                     </div>
-                    </div>
+                </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">GUARDAR REGISTRO</button>
@@ -200,10 +192,10 @@
               <div class="mb-3">
                   <label class="fw-bold text-secondary">2. Seleccionar Jornada</label>
                   <select name="jornada" class="form-select form-select-lg" required>
-                      <option value="" disabled selected>-- Elegir Mañana o Tarde --</option>
-                      <option value="manana">☀️ Mañana (06:30 a 12:00)</option>
-                      <option value="tarde">🌙 Tarde (13:00 a 21:30)</option>
-                  </select>
+                    <option value="" disabled selected>-- Elegir Mañana o Tarde --</option>
+                    <option value="manana">☀️ Mañana (06:30 a 11:00)</option>
+                    <option value="tarde">🌙 Tarde (16:00 a 20:30)</option>
+                </select>
               </div>
               <div class="mb-3">
                   <label class="fw-bold text-secondary">3. Cupos por Bloque</label>
@@ -220,16 +212,15 @@
 </div>
 
 <div class="modal fade" id="modalAgendar" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
       <div class="modal-content border-0 shadow">
           <div class="modal-header bg-dark text-white">
             <h5 class="modal-title"><i class="bi bi-card-list me-2"></i>Detalle y Reserva</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
-              <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+              <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 mt-2">
                   <h6 class="text-primary fw-bold mb-0" id="textoBloqueInfo"></h6>
-                  
                   <form method="post" action="{% url 'eliminar_bloque' %}" class="m-0">
                       {% csrf_token %}
                       <input type="hidden" name="bloque_id" id="inputEliminarBloqueId">
@@ -247,16 +238,20 @@
                   <form method="post" action="{% url 'agendar_reserva' %}">
                       {% csrf_token %}
                       <input type="hidden" name="bloque_id" id="inputBloqueId">
+                      <input type="hidden" name="dia" id="inputDia">
+                      <input type="hidden" name="hora" id="inputHora">
                       <input type="hidden" name="redirect_to" value="calendario_semanal">
                       
                       <label class="fw-bold mb-2 text-success small">AÑADIR ALUMNO:</label>
                       <div class="input-group">
                           <select name="alumno_id" class="form-select" required>
-                              <option value="" disabled selected>-- Buscar --</option>
-                              {% for alu in alumnos_registrados %}
-                                  <option value="{{ alu.id }}">{{ alu.nombre_completo }}</option>
-                              {% endfor %}
-                          </select>
+                                <option value="" disabled selected>-- Buscar Alumno --</option>
+                                {% for alu in alumnos_registrados %}
+                                    <option value="{{ alu.id }}">
+                                        {{ alu.nombre_completo }} (Quedan {{ alu.cupos_restantes }} cupos)
+                                    </option>
+                                {% endfor %}
+                            </select>
                           <button type="submit" class="btn btn-success">AGENDAR</button>
                       </div>
                   </form>
@@ -267,16 +262,26 @@
 </div>
 
 <script>
-    function abrirDetalleBloque(bloqueId, diaTexto, horaTexto) {
-        // Asignamos el ID a ambos formularios (el de agendar y el de eliminar bloque)
+    function abrirDetalleBloque(bloqueId, diaTexto, horaTexto, diaFormatoDB, horaFormatoDB) {
         document.getElementById('inputBloqueId').value = bloqueId;
         document.getElementById('inputEliminarBloqueId').value = bloqueId;
-        document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
         
+        const inputDia = document.getElementById('inputDia');
+        const inputHora = document.getElementById('inputHora');
+        if (inputDia) inputDia.value = diaFormatoDB || '';
+        if (inputHora) inputHora.value = horaFormatoDB || '';
+
         const contenedor = document.getElementById('contenedorAsistentes');
+
+        if (bloqueId === 'nuevo') {
+            document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs (Nuevo)';
+            contenedor.innerHTML = '<div class="list-group list-group-flush border rounded mb-3"><div class="list-group-item py-4 text-center text-primary fw-bold"><i class="bi bi-magic fs-4 d-block mb-2"></i>Horario disponible.<br><small class="text-muted fw-normal">Se activará automáticamente al agregar al primer alumno.</small></div></div>';
+            return;
+        }
+
+        document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
         contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
 
-        // Capturamos el token de seguridad de Django desde cualquier formulario existente
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         fetch(`/gym/bloque/${bloqueId}/detalle/`)
@@ -285,7 +290,6 @@
                 let html = '<div class="list-group list-group-flush border rounded mb-3">';
                 if(data.asistentes.length > 0) {
                     data.asistentes.forEach(a => {
-                        // Agregamos el formulario individual para eliminar a cada alumno de la lista
                         html += `<div class="list-group-item py-2 small d-flex justify-content-between align-items-center">
                                     <div>
                                         <span class="fw-bold d-block">${a.nombre}</span>

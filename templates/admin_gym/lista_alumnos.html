@@ -70,8 +70,8 @@
                     <tr>
                         <th class="ps-4">Paciente / Alumno</th>
                         <th>Contacto</th>
-                        <th>Perfil Físico</th>
-                        <th>Membresía</th>
+                        <th class="d-none d-lg-table-cell">Perfil Físico</th>
+                        <th class="d-none d-md-table-cell">Membresía</th>
                         <th class="text-center">Estado</th>
                         <th class="text-end pe-4">Acciones</th>
                     </tr>
@@ -170,7 +170,7 @@
 </div>
 
 <div class="modal fade" id="modalAlumno" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
     <div class="modal-content border-0 shadow">
       <form method="post" action="{% url 'registrar_alumno' %}">
         {% csrf_token %}

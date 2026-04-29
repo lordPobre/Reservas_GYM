@@ -58,7 +58,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        # Usará SQLite en tu PC, y PostgreSQL en Render
         default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3')
     )
 }
