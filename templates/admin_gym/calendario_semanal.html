@@ -224,7 +224,7 @@
                   <form method="post" action="{% url 'eliminar_bloque' %}" class="m-0">
                       {% csrf_token %}
                       <input type="hidden" name="bloque_id" id="inputEliminarBloqueId">
-                      <input type="hidden" name="redirect_to" value="calendario_semanal">
+                      <input type="hidden" name="redirect_to" value="{{ request.get_full_path }}">
                       <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('ATENCIÓN: ¿Seguro que deseas eliminar este bloque completo? Se borrarán todas las reservas dentro de él.');">
                           <i class="bi bi-trash-fill"></i> Borrar Bloque
                       </button>
@@ -240,8 +240,16 @@
                       <input type="hidden" name="bloque_id" id="inputBloqueId">
                       <input type="hidden" name="dia" id="inputDia">
                       <input type="hidden" name="hora" id="inputHora">
-                      <input type="hidden" name="redirect_to" value="calendario_semanal">
+                      <input type="hidden" name="redirect_to" value="{{ request.get_full_path }}">
                       
+                      <div class="form-check form-switch mb-3 mt-2 bg-light p-2 rounded border">
+                          <input class="form-check-input ms-1" type="checkbox" id="checkTodoElMes" name="todo_el_mes">
+                          <label class="form-check-label text-dark small fw-bold ms-2" for="checkTodoElMes">
+                              Reservar mes completo <br>
+                              <span class="text-muted fw-normal" style="font-size: 0.7rem;">(Agendará automáticamente todos los días equivalentes de este mes a esta hora)</span>
+                          </label>
+                      </div>
+
                       <label class="fw-bold mb-2 text-success small">AÑADIR ALUMNO:</label>
                       <div class="input-group">
                           <select name="alumno_id" class="form-select" required>
@@ -297,7 +305,9 @@
                                     </div>
                                     <form method="post" action="/gym/reserva/eliminar/${a.id}/" class="m-0">
                                         <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                                        <input type="hidden" name="redirect_to" value="calendario_semanal">
+                                        
+                                        <input type="hidden" name="redirect_to" value="${urlActual}">
+                                        
                                         <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('¿Quitar a ${a.nombre} de este horario?');" title="Eliminar reserva">
                                             <i class="bi bi-x-circle-fill fs-5"></i>
                                         </button>
