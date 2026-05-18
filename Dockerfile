@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     libgobject-2.0-0 \
     libcairo2 \
     libffi-dev \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-xlib-2.0-0 \
     libxml2 \
     libxslt1.1 \
     shared-mime-info \
@@ -26,4 +26,4 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
+CMD ["sh", "-c", "python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"]
