@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-h(-#z!23q0^eoajcy2erkpu@&(dej)@w@u61r48&y^_t-zse-u')
 DEBUG = 'RENDER' not in os.environ
 
-CSRF_TRUSTED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 ALLOWED_HOSTS = ['*']
 
