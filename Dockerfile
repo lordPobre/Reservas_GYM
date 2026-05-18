@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-# Instalar dependencias del sistema para WeasyPrint
 RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libpangoft2-1.0-0 \
@@ -24,6 +23,7 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput
 
-EXPOSE 8000
+COPY start.sh .
+RUN chmod +x start.sh
 
-CMD python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120
+CMD ["./start.sh"]
