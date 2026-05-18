@@ -1,0 +1,16 @@
+[providers]
+python = "3.11"
+
+[phases.setup]
+# Le decimos a Railway que instale las librerías gráficas de Linux que WeasyPrint necesita
+aptPkgs = [
+    "libpango-1.0-0",
+    "libpangoft2-1.0-0",
+    "libgobject-2.0-0",
+    "libffi-dev",
+    "shared-mime-info",
+    "fontconfig"
+]
+
+[phases.build]
+cmds = ["python manage.py collectstatic --noinput"]
