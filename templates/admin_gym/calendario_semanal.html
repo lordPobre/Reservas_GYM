@@ -270,6 +270,8 @@
 </div>
 
 <script>
+    const urlActual = "{{ request.get_full_path|escapejs }}";
+    
     function abrirDetalleBloque(bloqueId, diaTexto, horaTexto, diaFormatoDB, horaFormatoDB) {
         document.getElementById('inputBloqueId').value = bloqueId;
         document.getElementById('inputEliminarBloqueId').value = bloqueId;
