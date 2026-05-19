@@ -293,7 +293,13 @@
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         fetch(`/gym/bloque/${bloqueId}/detalle/`)
-            .then(response => response.json())
+            .then(response => {
+                // Si el servidor responde con error (404, 500, etc), lanzamos una alerta
+                if (!response.ok) {
+                    throw new Error(`Error del servidor (Código ${response.status})`);
+                }
+                return response.json();
+            })
             .then(data => {
                 let html = '<div class="list-group list-group-flush border rounded mb-3">';
                 if(data.asistentes.length > 0) {
@@ -305,9 +311,7 @@
                                     </div>
                                     <form method="post" action="/gym/reserva/eliminar/${a.id}/" class="m-0">
                                         <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                                        
                                         <input type="hidden" name="redirect_to" value="${urlActual}">
-                                        
                                         <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('¿Quitar a ${a.nombre} de este horario?');" title="Eliminar reserva">
                                             <i class="bi bi-x-circle-fill fs-5"></i>
                                         </button>
@@ -319,6 +323,15 @@
                 }
                 html += '</div>';
                 contenedor.innerHTML = html;
+            })
+            .catch(error => {
+                contenedor.innerHTML = `
+                    <div class="alert alert-danger m-3 text-center shadow-sm">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-3 d-block mb-2"></i>
+                        <h6 class="fw-bold">No se pudo cargar la información</h6>
+                        <small class="text-muted">${error.message}</small>
+                    </div>`;
+                console.error("Falla detectada en fetch:", error);
             });
     }
 </script>
