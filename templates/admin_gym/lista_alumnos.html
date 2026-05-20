@@ -23,7 +23,7 @@
         border-bottom: 1px solid #f1f3f5;
     }
     .table-modern tbody tr { transition: all 0.2s ease; }
-    .table-modern tbody tr:hover { background-color: #f8f9fa; transform: scale(1.005); }
+    .table-modern tbody tr.alumno-row:hover { background-color: #f8f9fa; transform: scale(1.005); }
     
     .avatar-circle {
         width: 42px;
@@ -50,19 +50,29 @@
 </style>
 
 <div class="container-fluid py-3">
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
         <div>
             <h2 class="fw-bold text-dark m-0">Directorio de Alumnos</h2>
             <p class="text-muted small m-0">Gestión general y membresías</p>
         </div>
-        <button class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 align-self-start align-self-sm-center" data-bs-toggle="modal" data-bs-target="#modalAlumno">
-            <i class="bi bi-person-plus-fill me-2"></i>NUEVO REGISTRO
-        </button>
+        
+        <div class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+            <div class="input-group shadow-sm bg-white rounded-pill overflow-hidden border" style="min-width: 280px;">
+                <span class="input-group-text bg-transparent border-0 text-muted ps-3 pe-2">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" id="buscadorAlumnos" class="form-control border-0 shadow-none bg-transparent" placeholder="Buscar por nombre...">
+            </div>
+            
+            <button class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAlumno">
+                <i class="bi bi-person-plus-fill me-2"></i>NUEVO REGISTRO
+            </button>
+        </div>
     </div>
 
     <div class="modern-card border-0 mb-4">
         <div class="table-responsive">
-            <table class="table table-modern table-hover mb-0">
+            <table class="table table-modern table-hover mb-0" id="tablaAlumnos">
                 <thead>
                     <tr>
                         <th class="ps-3 ps-md-4">Paciente / Alumno</th>
@@ -75,14 +85,14 @@
                 </thead>
                 <tbody>
                     {% for alumno in alumnos %}
-                   <tr style="opacity: {% if not alumno.activo %}0.6{% else %}1{% endif %};">
+                   <tr class="alumno-row" style="opacity: {% if not alumno.activo %}0.6{% else %}1{% endif %};">
                         <td class="ps-3 ps-md-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-circle me-2 me-md-3 {% if not alumno.activo %}bg-secondary{% endif %}" style="min-width: 42px;">
                                     {{ alumno.nombre_completo|make_list|first|upper }}
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">{{ alumno.nombre_completo }}</div>
+                                    <div class="fw-bold text-dark mb-1 nombre-alumno" style="font-size: 0.95rem;">{{ alumno.nombre_completo }}</div>
                                     <span class="badge bg-light text-secondary border d-none d-md-inline-block" title="Objetivo principal">
                                         {{ alumno.objetivo|default:"Sin objetivo definido"|truncatechars:25 }}
                                     </span>
@@ -147,6 +157,16 @@
                         </td>
                     </tr>
                     {% endfor %}
+                    
+                    <tr id="filaSinResultados" class="d-none">
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-search fs-1 d-block mb-3 opacity-25"></i>
+                                <h5>No se encontraron coincidencias</h5>
+                                <p class="small">Intenta buscar con otro nombre o apellido.</p>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -162,7 +182,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body p-4">
-        
         <div class="text-center mb-4">
             <div class="avatar-circle mx-auto mb-3 shadow-sm" style="width: 80px; height: 80px; font-size: 2rem;">
                 {{ alumno.nombre_completo|make_list|first|upper }}
@@ -275,4 +294,40 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const buscador = document.getElementById('buscadorAlumnos');
+    const filasAlumno = document.querySelectorAll('.alumno-row');
+    const filaSinResultados = document.getElementById('filaSinResultados');
+
+    if(buscador) {
+        buscador.addEventListener('input', function(e) {
+            // Elimina tildes y pasa todo a minúscula para una búsqueda flexible
+            const textoBuscado = e.target.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            let alumnosVisibles = 0;
+
+            filasAlumno.forEach(fila => {
+                const nombreAlumno = fila.querySelector('.nombre-alumno').innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                
+                if (nombreAlumno.includes(textoBuscado)) {
+                    fila.style.display = ''; // Mostrar fila
+                    alumnosVisibles++;
+                } else {
+                    fila.style.display = 'none'; // Ocultar fila
+                }
+            });
+
+            // Muestra u oculta el mensaje de "Sin Resultados"
+            if(filaSinResultados) {
+                if (alumnosVisibles === 0 && filasAlumno.length > 0) {
+                    filaSinResultados.classList.remove('d-none');
+                } else {
+                    filaSinResultados.classList.add('d-none');
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

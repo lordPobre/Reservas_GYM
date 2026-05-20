@@ -9,7 +9,6 @@ DEBUG = 'RENDER' not in os.environ
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 #CSRF_TRUSTED_ORIGINS = [o for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o]
-
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
