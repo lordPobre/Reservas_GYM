@@ -1,278 +1,424 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load gym_tags %} 
+{% load gym_tags %}
 
 {% block content %}
 <style>
-    .reserva-cell { cursor: pointer; transition: all 0.2s; vertical-align: top; }
-    .reserva-cell:hover { filter: brightness(0.9); transform: scale(1.02); }
-    .table-fixed { table-layout: fixed; }
-    .sticky-col { position: sticky; left: 0; background-color: #f8f9fa !important; z-index: 5; border-right: 2px solid #dee2e6 !important; }
-    .transition-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+  :root {
+    --kh-dark:      #0f0f1a;
+    --kh-accent:    #059669;
+    --kh-accent-bg: #D1FAE5;
+    --kh-red:       #DC2626;
+    --kh-red-bg:    #FEE2E2;
+    --kh-border:    #E5E7EB;
+    --kh-bg:        #ECFDF5;
+    --kh-surface:   #ffffff;
+    --kh-muted:     #6B7280;
+    --kh-text:      #111827;
+    --kh-radius:    14px;
+    --kh-shadow:    0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(5,150,105,0.07);
+  }
+  body { background: var(--kh-bg) !important; }
+
+  .kh-header {
+    background: var(--kh-dark);
+    border-radius: var(--kh-radius);
+    padding: 18px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+  }
+  .kh-header-left { display: flex; align-items: center; gap: 12px; }
+  .kh-header-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--kh-accent);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.1rem;
+  }
+  .kh-header h2 { color: #fff; font-size: 1.05rem; font-weight: 700; margin: 0; }
+  .kh-badge { background: var(--kh-accent); color: #fff; font-size: .6rem; font-weight: 700; letter-spacing: 1px; padding: 3px 8px; border-radius: 20px; }
+  .kh-header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .kh-stat-pill {
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    border-radius: 20px; padding: 5px 14px;
+    font-size: .75rem; font-weight: 600; color: rgba(255,255,255,.9);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .kh-stat-pill i { font-size: .8rem; color: #6EE7B7; }
+
+  .kh-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 9px; font-size: .78rem;
+    font-weight: 600; border: none; cursor: pointer;
+    transition: opacity .15s, transform .1s; text-decoration: none; white-space: nowrap;
+  }
+  .kh-btn:hover { opacity: .85; transform: translateY(-1px); }
+  .kh-btn-ghost  { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2); }
+  .kh-btn-accent { background: var(--kh-accent); color: #fff; }
+
+  .kh-week-nav {
+    display: flex; align-items: center;
+    border: 1px solid rgba(255,255,255,.2); border-radius: 9px; overflow: hidden;
+  }
+  .kh-week-nav a {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; color: rgba(255,255,255,.8);
+    text-decoration: none; transition: background .15s;
+  }
+  .kh-week-nav a:hover { background: rgba(255,255,255,.12); }
+  .kh-week-nav span {
+    padding: 0 14px; font-size: .75rem; font-weight: 600; color: rgba(255,255,255,.9);
+    border-left: 1px solid rgba(255,255,255,.15);
+    border-right: 1px solid rgba(255,255,255,.15); white-space: nowrap;
+  }
+
+  .kh-selector {
+    background: var(--kh-surface); border-radius: var(--kh-radius);
+    border: 1px solid var(--kh-border); padding: 14px 18px;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .kh-selector label { font-size: .75rem; font-weight: 700; color: var(--kh-muted); text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+  .kh-selector select { flex: 1; min-width: 220px; }
+  .kh-selector .form-text { font-size: .7rem; width: 100%; margin: 0; }
+
+  .kh-cal { background: var(--kh-surface); border-radius: var(--kh-radius); border: 1px solid var(--kh-border); box-shadow: var(--kh-shadow); overflow: hidden; }
+  .kh-table-wrap { overflow-x: auto; }
+  .kh-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+  .kh-table thead tr { background: #F0FDF4; border-bottom: 2px solid var(--kh-border); }
+  .kh-table thead th {
+    padding: 12px 8px; text-align: center;
+    font-size: .7rem; font-weight: 700; color: var(--kh-muted);
+    letter-spacing: .5px; text-transform: uppercase;
+    border-right: 1px solid var(--kh-border);
+  }
+  .kh-table thead th:last-child { border-right: none; }
+  .kh-table thead th.kh-time-head { width: 68px; }
+  .kh-table thead th .day-name { display: block; font-size: .65rem; color: var(--kh-muted); font-weight: 600; letter-spacing: .6px; margin-bottom: 4px; }
+  .kh-table thead th .day-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    font-size: .95rem; font-weight: 700; color: var(--kh-text); margin: 0 auto 2px;
+  }
+  .kh-table thead th.kh-today .day-num { background: var(--kh-accent); color: #fff; }
+
+  .kh-divider td {
+    background: #F0FDF4; border-top: 1px dashed #A7F3D0; border-bottom: 1px dashed #A7F3D0;
+    text-align: center; padding: 5px;
+    font-size: .65rem; font-weight: 700; color: var(--kh-accent); letter-spacing: .8px;
+  }
+
+  .kh-time {
+    text-align: right; padding: 0 10px 0 0; padding-top: 10px;
+    font-size: .68rem; font-weight: 700; color: var(--kh-muted);
+    vertical-align: top; border-right: 2px solid var(--kh-border) !important;
+    position: sticky; left: 0; background: #fff; z-index: 2; white-space: nowrap;
+  }
+  .kh-cell {
+    padding: 4px; vertical-align: top;
+    border-right: 1px solid var(--kh-border); border-bottom: 1px solid var(--kh-border);
+    min-height: 82px; cursor: pointer; transition: background .12s;
+  }
+  .kh-cell:last-child { border-right: none; }
+
+  .kh-block {
+    border-radius: 8px; padding: 6px 8px;
+    height: 100%; min-height: 74px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: filter .15s, transform .15s;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .kh-block:hover { filter: brightness(.93); transform: scale(1.015); }
+  .kh-block::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 8px 0 0 8px; }
+  .kh-block-libre { background: var(--kh-accent-bg); }
+  .kh-block-libre::before { background: var(--kh-accent); }
+  .kh-block-lleno { background: var(--kh-red-bg); }
+  .kh-block-lleno::before { background: var(--kh-red); }
+
+  .kh-block-spots {
+    font-size: .65rem; font-weight: 700; letter-spacing: .3px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .kh-block-libre .kh-block-spots { color: var(--kh-accent); }
+  .kh-block-lleno .kh-block-spots { color: var(--kh-red); }
+
+  .kh-block-names { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .kh-block-name {
+    font-size: .68rem; font-weight: 500; color: #1F2937;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .kh-block-name::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .kh-block-libre .kh-block-name::before { background: var(--kh-accent); }
+  .kh-block-lleno .kh-block-name::before { background: var(--kh-red); }
+  .kh-empty-label { font-size: .6rem; font-style: italic; color: #9CA3AF; text-align: center; margin-top: 4px; }
+
+  .kh-empty {
+    border-radius: 8px; min-height: 74px; height: 100%;
+    border: 1.5px dashed #A7F3D0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    opacity: .5; transition: opacity .15s, border-color .15s; cursor: pointer;
+  }
+  .kh-cell:hover .kh-empty { opacity: 1; border-color: var(--kh-accent); }
+  .kh-empty i { font-size: 1.1rem; color: var(--kh-accent); }
+  .kh-empty span { font-size: .62rem; font-weight: 700; color: var(--kh-accent); letter-spacing: .5px; }
+
+  .kh-legend {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    padding: 10px 16px; margin-top: 12px;
+    background: var(--kh-surface); border-radius: 10px; border: 1px solid var(--kh-border);
+  }
+  .kh-legend-item { display: flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--kh-muted); font-weight: 500; }
+  .kh-leg-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+
+  .modal-content { border-radius: 14px !important; border: none !important; box-shadow: 0 8px 40px rgba(0,0,0,.15) !important; }
+  .kh-modal-hdr { background: var(--kh-dark); color: #fff; border-radius: 14px 14px 0 0 !important; padding: 16px 20px; }
+  .kh-modal-hdr-accent { background: var(--kh-accent); color: #fff; border-radius: 14px 14px 0 0 !important; padding: 16px 20px; }
+  .modal-header h5 { font-size: .9rem; font-weight: 700; margin: 0; }
 </style>
 
-<div class="container-fluid">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 mt-2">
-        <h2 class="fw-bold m-0 text-success"><i class="bi bi-apple me-2"></i>RESERVA NUTRICIONAL</h2>
-        
-        <div class="d-flex gap-3 align-items-center">
-            <button class="btn btn-outline-success fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoBloqueNutri">
-                <i class="bi bi-clock-history me-2"></i>CREAR BLOQUES
-            </button>
+<div class="container-fluid py-3">
 
-            <div class="btn-group shadow-sm ms-2">
-                <a href="?fecha={{ semana_anterior }}" class="btn btn-outline-dark"><i class="bi bi-chevron-left"></i></a>
-                <button class="btn btn-dark fw-bold">SEMANA ACTUAL</button>
-                <a href="?fecha={{ semana_siguiente }}" class="btn btn-outline-dark"><i class="bi bi-chevron-right"></i></a>
-            </div>
-        </div>
+  <!-- HEADER -->
+  <div class="kh-header">
+    <div class="kh-header-left">
+      <div class="kh-header-icon"><i class="bi bi-apple"></i></div>
+      <div>
+        <h2>Nutrición <span class="kh-badge">CLÍNICA</span></h2>
+        <small style="color:rgba(255,255,255,.5);font-size:.7rem">Gestión de citas nutricionales</small>
+      </div>
     </div>
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold m-0">
-                <span class="text-gradient">
-                    {% if '/nutricion/' in request.path %}NUTRICIÓN{% else %}KINESIOLOGÍA{% endif %}
-                </span>
-            </h2>
-            <p class="text-muted fw-semibold m-0">Gestión de citas y seguimiento clínico</p>
-        </div>
-        
-        <div class="text-end">
-            <span class="badge bg-dark px-3 py-2 rounded-pill">
-                {{ alumnos_registrados.count }} Alumnos Habilitados
-            </span>
-        </div>
+    <div class="kh-header-right">
+      <div class="kh-stat-pill">
+        <i class="bi bi-people-fill"></i>
+        {{ alumnos_registrados.count }} pacientes habilitados
+      </div>
+      <button class="kh-btn kh-btn-ghost" data-bs-toggle="modal" data-bs-target="#modalNuevoBloqueNutri">
+        <i class="bi bi-clock-history"></i> Crear Bloques
+      </button>
+      <div class="kh-week-nav">
+        <a href="?fecha={{ semana_anterior }}"><i class="bi bi-chevron-left"></i></a>
+        <span>Semana actual</span>
+        <a href="?fecha={{ semana_siguiente }}"><i class="bi bi-chevron-right"></i></a>
+      </div>
     </div>
+  </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold small text-uppercase">Seleccionar Paciente/Alumno</label>
-        <select name="alumno_id" class="form-select form-select-lg border-primary shadow-sm" required>
-            <option value="" disabled selected>Buscar alumno habilitado...</option>
-            {% for alumno in alumnos_registrados %}
-                <option value="{{ alumno.id }}">{{ alumno.nombre_completo }}</option>
+  <!-- SELECTOR PACIENTE -->
+  <div class="kh-selector">
+    <label><i class="bi bi-person-badge me-1"></i>Paciente</label>
+    <select name="alumno_id" class="form-select">
+      <option value="" disabled selected>Buscar paciente habilitado...</option>
+      {% for alumno in alumnos_registrados %}
+        <option value="{{ alumno.id }}">{{ alumno.nombre_completo }}</option>
+      {% endfor %}
+    </select>
+    <div class="form-text text-success w-100">
+      <i class="bi bi-info-circle me-1"></i>Solo aparecen alumnos con nutrición activa en su ficha.
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="kh-cal">
+    <div class="kh-table-wrap">
+      <table class="kh-table">
+        <thead>
+          <tr>
+            <th class="kh-time-head"></th>
+            {% for dia in dias_semana %}
+              <th {% if dia == hoy %}class="kh-today"{% endif %}>
+                <span class="day-name">{{ dia|date:"l"|slice:":3"|upper }}</span>
+                <div class="day-num">{{ dia|date:"d" }}</div>
+                <small style="font-size:.6rem;color:#9CA3AF;font-weight:500">{{ dia|date:"b"|upper }}</small>
+              </th>
             {% endfor %}
-        </select>
-        <div class="form-text text-primary">
-            <i class="bi bi-info-circle me-1"></i> Solo aparecen alumnos con el servicio clínico activo en su ficha.
-        </div>
-    </div>
-
-    <div class="card border-0 shadow-sm overflow-hidden border-top border-success border-4">
-        <div class="table-responsive">
-            <table class="table table-bordered table-fixed text-center m-0 align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="sticky-col align-middle" style="width: 100px;">Hora</th>
-                        {% for dia in dias_semana %}
-                            <th class="py-3 align-middle">
-                                <span class="d-block small opacity-75">{{ dia|date:"l"|upper }}</span>
-                                <span class="fs-5">{{ dia|date:"d M" }}</span>
-                            </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for time_slot in slots_manana|add:slots_tarde %}
-                        
-                        {% if time_slot.hour >= 10 and time_slot.hour <= 15 %}
-                        
-                            {% if time_slot == slots_tarde.0 %}
-                                <tr class="bg-light"><td colspan="8" class="py-2 text-muted small fw-bold text-center">RECESO / CAMBIO DE JORNADA</td></tr>
-                            {% endif %}
-                            
-                            <tr>
-                                <td class="fw-bold sticky-col align-middle">{{ time_slot|time:"H:i" }}</td>
-                                {% for dia in dias_semana %}
-                                    <td class="p-0 reserva-cell">
-                                        {% get_bloque bloques_semana dia time_slot as bloque %}
-                                        
-                                        {% if bloque %}
-                                            {% with reservas=bloque.reservas_bloque.all ocupacion=bloque.reservas_bloque.count %}
-                                                <div class="w-100 h-100 p-2 {% if ocupacion >= bloque.capacidad_maxima %}bg-danger bg-opacity-10 border-danger{% else %}bg-info bg-opacity-10 border-info{% endif %} border rounded transition-hover"
-                                                     style="min-height: 80px; text-align: left;"
-                                                     data-bs-toggle="modal" 
-                                                     data-bs-target="#modalAgendarNutri"
-                                                     onclick="abrirDetalleBloque('{{ bloque.id }}', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}', '', '')">
-                                                    
-                                                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 mb-2 pb-1">
-                                                        <span class="fw-bold {% if ocupacion >= bloque.capacidad_maxima %}text-danger{% else %}text-info{% endif %}" style="font-size: 0.65rem;">
-                                                            {{ ocupacion }}/{{ bloque.capacidad_maxima }} CUPOS
-                                                        </span>
-                                                        <i class="bi bi-plus-circle text-muted" style="font-size: 0.7rem;"></i>
-                                                    </div>
-
-                                                    <div class="d-flex flex-column gap-1">
-                                                        {% for reserva in reservas %}
-                                                            <div class="text-dark text-truncate" style="font-size: 0.75rem; line-height: 1.2; font-weight: 500;" title="{{ reserva.alumno.nombre_completo }}">
-                                                                • {{ reserva.alumno.nombre_completo|truncatechars:18 }}
-                                                            </div>
-                                                        {% empty %}
-                                                            <div class="text-muted fst-italic text-center mt-2" style="font-size: 0.7rem;">Bloque libre</div>
-                                                        {% endfor %}
-                                                    </div>
-                                                    
-                                                </div>
-                                            {% endwith %}
-                                        {% else %}
-                                            <div class="w-100 h-100 p-2 bg-light d-flex flex-column justify-content-center align-items-center transition-hover"
-                                                 style="min-height: 80px; border: 2px dashed #dee2e6; opacity: 0.6; cursor: pointer;"
-                                                 data-bs-toggle="modal" 
-                                                 data-bs-target="#modalAgendarNutri"
-                                                 onclick="abrirDetalleBloque('nuevo', '{{ dia|date:'l d' }}', '{{ time_slot|time:'H:i' }}', '{{ dia|date:'Y-m-d' }}', '{{ time_slot|time:'H:i:s' }}')">
-                                                <i class="bi bi-plus-circle text-success fs-4"></i>
-                                                <small class="fw-bold text-success mt-1" style="font-size: 0.65rem;">AGENDAR CITA</small>
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                {% endfor %}
-                            </tr>
-                            
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalNuevoBloqueNutri" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
-      <div class="modal-content border-0 shadow">
-        <form method="post" action="{% url 'crear_bloque_manual' %}">
-          {% csrf_token %}
-          <input type="hidden" name="tipo" value="NUTRICION">
-          
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>ACTIVAR JORNADA NUTRICIÓN</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body p-4">
-              <div class="mb-3">
-                  <label class="fw-bold text-secondary">1. Fecha a Activar</label>
-                  <input type="date" name="dia" class="form-control form-control-lg" required>
-              </div>
-              <div class="mb-3">
-                  <label class="fw-bold text-secondary">2. Seleccionar Jornada</label>
-                  <select name="jornada" class="form-select form-select-lg" required>
-                      <option value="" disabled selected>-- Elegir Mañana o Tarde --</option>
-                      <option value="manana">☀️ Mañana (10:00 a 12:00)</option>
-                      <option value="tarde">🌙 Tarde (13:00 a 15:00)</option>
-                  </select>
-              </div>
-              <div class="mb-3">
-                  <label class="fw-bold text-secondary">3. Cupos por Bloque</label>
-                  <input type="number" name="capacidad" class="form-control form-control-lg" min="1" max="50" value="1" required>
-                  <small class="text-muted">Generalmente nutrición es 1 a 1.</small>
-              </div>
-          </div>
-          <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">GENERAR BLOQUES</button>
-          </div>
-        </form>
-      </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalAgendarNutri" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
-      <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-dark text-white">
-            <h5 class="modal-title"><i class="bi bi-apple me-2"></i>Detalle y Cita Nutricional</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body p-4">
-              <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                  <h6 class="text-success fw-bold mb-0" id="textoBloqueInfo"></h6>
-                  
-                  <form method="post" action="{% url 'eliminar_bloque' %}" class="m-0">
-                      {% csrf_token %}
-                      <input type="hidden" name="bloque_id" id="inputEliminarBloqueId">
-                      <input type="hidden" name="redirect_to" value="reserva_nutricional">
-                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('ATENCIÓN: ¿Seguro que deseas eliminar este bloque completo? Se borrarán todas las citas dentro de él.');">
-                          <i class="bi bi-trash-fill"></i> Borrar Bloque
-                      </button>
-                  </form>
-              </div>
-
-              <p class="fw-bold mb-2 small text-uppercase">Pacientes en este bloque:</p>
-              <div id="contenedorAsistentes" class="mb-4"></div>
-              
-              <div id="seccionAgregarReserva">
-                  <form method="post" action="{% url 'agendar_reserva' %}">
-                      {% csrf_token %}
-                      <input type="hidden" name="bloque_id" id="inputBloqueId">
-                      <input type="hidden" name="dia" id="inputDia">
-                      <input type="hidden" name="hora" id="inputHora">
-                      <input type="hidden" name="redirect_to" value="reserva_nutricional">
-                      
-                      <label class="fw-bold mb-2 text-success small">AÑADIR PACIENTE:</label>
-                      <div class="input-group">
-                          <select name="alumno_id" class="form-select" required>
-                              <option value="" disabled selected>-- Buscar Paciente --</option>
-                              {% for alu in alumnos_registrados %}
-                                  <option value="{{ alu.id }}">{{ alu.nombre_completo }}</option>
-                              {% endfor %}
-                          </select>
-                          <button type="submit" class="btn btn-success">AGENDAR CITA</button>
+          </tr>
+        </thead>
+        <tbody>
+          {% for time_slot in slots_manana|add:slots_tarde %}
+            {% if time_slot.hour >= 10 and time_slot.hour <= 15 %}
+              {% if time_slot == slots_tarde.0 %}
+                <tr class="kh-divider"><td colspan="8">— RECESO / CAMBIO DE JORNADA —</td></tr>
+              {% endif %}
+              <tr>
+                <td class="kh-time">{{ time_slot|time:"H:i" }}</td>
+                {% for dia in dias_semana %}
+                  <td class="kh-cell">
+                    {% get_bloque bloques_semana dia time_slot as bloque %}
+                    {% if bloque %}
+                      {% with reservas=bloque.reservas_bloque.all ocupacion=bloque.reservas_bloque.count %}
+                        <div class="kh-block {% if ocupacion >= bloque.capacidad_maxima %}kh-block-lleno{% else %}kh-block-libre{% endif %}"
+                             data-bs-toggle="modal" data-bs-target="#modalAgendarNutri"
+                             onclick="abrirDetalleBloque('{{ bloque.id }}','{{ dia|date:'l d' }}','{{ time_slot|time:'H:i' }}','','')">
+                          <div class="kh-block-spots">
+                            <span>{{ ocupacion }}/{{ bloque.capacidad_maxima }} cupos</span>
+                            <i class="bi {% if ocupacion >= bloque.capacidad_maxima %}bi-lock-fill{% else %}bi-plus-circle{% endif %}" style="font-size:.65rem"></i>
+                          </div>
+                          <div class="kh-block-names">
+                            {% for reserva in reservas %}
+                              <div class="kh-block-name" title="{{ reserva.alumno.nombre_completo }}">{{ reserva.alumno.nombre_completo|truncatechars:20 }}</div>
+                            {% empty %}
+                              <div class="kh-empty-label">Bloque libre</div>
+                            {% endfor %}
+                          </div>
+                        </div>
+                      {% endwith %}
+                    {% else %}
+                      <div class="kh-empty"
+                           data-bs-toggle="modal" data-bs-target="#modalAgendarNutri"
+                           onclick="abrirDetalleBloque('nuevo','{{ dia|date:'l d' }}','{{ time_slot|time:'H:i' }}','{{ dia|date:'Y-m-d' }}','{{ time_slot|time:'H:i:s' }}')">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>AGENDAR CITA</span>
                       </div>
-                  </form>
-              </div>
+                    {% endif %}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LEYENDA -->
+  <div class="kh-legend">
+    <div class="kh-legend-item"><span class="kh-leg-dot" style="background:#059669"></span>Disponible</div>
+    <div class="kh-legend-item"><span class="kh-leg-dot" style="background:#DC2626"></span>Lleno</div>
+    <div class="kh-legend-item"><span class="kh-leg-dot" style="background:#A7F3D0;border:1px dashed #059669"></span>Sin bloque</div>
+  </div>
+</div>
+
+<!-- MODAL CREAR BLOQUE NUTRI -->
+<div class="modal fade" id="modalNuevoBloqueNutri" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crear_bloque_manual' %}">
+        {% csrf_token %}
+        <input type="hidden" name="tipo" value="NUTRICION">
+        <div class="modal-header kh-modal-hdr-accent">
+          <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Activar Jornada — Nutrición</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="fw-bold text-secondary small">1. Fecha a Activar</label>
+            <input type="date" name="dia" class="form-control form-control-lg" required>
           </div>
+          <div class="mb-3">
+            <label class="fw-bold text-secondary small">2. Seleccionar Jornada</label>
+            <select name="jornada" class="form-select form-select-lg" required>
+              <option value="" disabled selected>— Elegir Mañana o Tarde —</option>
+              <option value="manana">☀️ Mañana (10:00 a 12:00)</option>
+              <option value="tarde">🌙 Tarde (13:00 a 15:00)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="fw-bold text-secondary small">3. Cupos por Bloque</label>
+            <input type="number" name="capacidad" class="form-control form-control-lg" min="1" max="50" value="1" required>
+            <small class="text-muted">Generalmente nutrición es 1 a 1.</small>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success px-4 fw-bold">GENERAR BLOQUES</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AGENDAR NUTRI -->
+<div class="modal fade" id="modalAgendarNutri" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header kh-modal-hdr">
+        <h5 class="modal-title"><i class="bi bi-apple me-2"></i>Detalle y Cita Nutricional</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h6 class="fw-bold mb-0" style="color:var(--kh-accent)" id="textoBloqueInfo"></h6>
+          <form method="post" action="{% url 'eliminar_bloque' %}" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="bloque_id" id="inputEliminarBloqueId">
+            <input type="hidden" name="redirect_to" value="reserva_nutricional">
+            <button type="submit" class="btn btn-sm btn-outline-danger"
+              onclick="return confirm('¿Eliminar este bloque y todas sus citas?');">
+              <i class="bi bi-trash-fill"></i> Borrar bloque
+            </button>
+          </form>
+        </div>
+        <p class="fw-bold mb-2 small text-uppercase text-muted">Pacientes en este bloque</p>
+        <div id="contenedorAsistentes" class="mb-4"></div>
+        <div id="seccionAgregarReserva">
+          <form method="post" action="{% url 'agendar_reserva' %}">
+            {% csrf_token %}
+            <input type="hidden" name="bloque_id" id="inputBloqueId">
+            <input type="hidden" name="dia"       id="inputDia">
+            <input type="hidden" name="hora"      id="inputHora">
+            <input type="hidden" name="redirect_to" value="reserva_nutricional">
+            <label class="fw-bold mb-2 small" style="color:var(--kh-accent)">AÑADIR PACIENTE:</label>
+            <div class="input-group">
+              <select name="alumno_id" class="form-select" required>
+                <option value="" disabled selected>— Buscar Paciente —</option>
+                {% for alu in alumnos_registrados %}
+                  <option value="{{ alu.id }}">{{ alu.nombre_completo }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-success fw-bold px-4">AGENDAR CITA</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
+  </div>
 </div>
 
 <script>
-    function abrirDetalleBloque(bloqueId, diaTexto, horaTexto, diaFormatoDB, horaFormatoDB) {
-        document.getElementById('inputBloqueId').value = bloqueId;
-        document.getElementById('inputEliminarBloqueId').value = bloqueId;
-        
-        const inputDia = document.getElementById('inputDia');
-        const inputHora = document.getElementById('inputHora');
-        if (inputDia) inputDia.value = diaFormatoDB || '';
-        if (inputHora) inputHora.value = horaFormatoDB || '';
-
-        const contenedor = document.getElementById('contenedorAsistentes');
-
-        if (bloqueId === 'nuevo') {
-            document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs (Nuevo)';
-            contenedor.innerHTML = '<div class="list-group list-group-flush border rounded mb-3"><div class="list-group-item py-4 text-center text-success fw-bold"><i class="bi bi-magic fs-4 d-block mb-2"></i>Horario disponible.<br><small class="text-muted fw-normal">Se activará automáticamente al agendar al paciente.</small></div></div>';
-            return;
-        }
-
-        document.getElementById('textoBloqueInfo').innerText = diaTexto + ' | ' + horaTexto + ' hrs';
-        contenedor.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-success"></div></div>';
-
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        fetch(`/gym/bloque/${bloqueId}/detalle/`)
-            .then(response => response.json())
-            .then(data => {
-                let html = '<div class="list-group list-group-flush border rounded mb-3">';
-                if(data.asistentes.length > 0) {
-                    data.asistentes.forEach(a => {
-                        html += `<div class="list-group-item py-2 small d-flex justify-content-between align-items-center border-start border-success border-3">
-                                    <div>
-                                        <span class="fw-bold d-block">${a.nombre}</span>
-                                        <span class="text-muted"><i class="bi bi-telephone-fill me-1"></i> ${a.telefono}</span>
-                                    </div>
-                                    <form method="post" action="/gym/reserva/eliminar/${a.id}/" class="m-0">
-                                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                                        <input type="hidden" name="redirect_to" value="reserva_nutricional">
-                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('¿Quitar a ${a.nombre} de esta cita nutricional?');" title="Eliminar cita">
-                                            <i class="bi bi-x-circle-fill fs-5"></i>
-                                        </button>
-                                    </form>
-                                 </div>`;
-                    });
-                } else {
-                    html += '<div class="list-group-item py-3 text-center text-muted">Bloque disponible</div>';
-                }
-                html += '</div>';
-                contenedor.innerHTML = html;
-            });
-    }
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+function abrirDetalleBloque(bloqueId, diaTexto, horaTexto, diaFormatoDB, horaFormatoDB) {
+  document.getElementById('inputBloqueId').value         = bloqueId;
+  document.getElementById('inputEliminarBloqueId').value = bloqueId;
+  const inputDia  = document.getElementById('inputDia');
+  const inputHora = document.getElementById('inputHora');
+  if (inputDia)  inputDia.value  = diaFormatoDB  || '';
+  if (inputHora) inputHora.value = horaFormatoDB || '';
+  const contenedor = document.getElementById('contenedorAsistentes');
+  if (bloqueId === 'nuevo') {
+    document.getElementById('textoBloqueInfo').innerText = diaTexto + ' · ' + horaTexto + ' hrs — Nuevo bloque';
+    contenedor.innerHTML = `<div class="list-group list-group-flush border rounded mb-3">
+      <div class="list-group-item py-4 text-center fw-bold" style="color:var(--kh-accent)">
+        <i class="bi bi-magic fs-4 d-block mb-2"></i>Horario disponible.<br>
+        <small class="text-muted fw-normal">Se activará al agendar el primer paciente.</small>
+      </div></div>`;
+    return;
+  }
+  document.getElementById('textoBloqueInfo').innerText = diaTexto + ' · ' + horaTexto + ' hrs';
+  contenedor.innerHTML = `<div class="text-center py-3"><div class="spinner-border spinner-border-sm" style="color:var(--kh-accent)"></div></div>`;
+  fetch(`/gym/bloque/${bloqueId}/detalle/`)
+    .then(r => r.json())
+    .then(data => {
+      let html = '<div class="list-group list-group-flush border rounded mb-3">';
+      if (data.asistentes.length > 0) {
+        data.asistentes.forEach(a => {
+          html += `<div class="list-group-item py-2 small d-flex justify-content-between align-items-center border-start border-3" style="border-color:var(--kh-accent)!important">
+            <div><span class="fw-bold d-block">${a.nombre}</span>
+            <span class="text-muted"><i class="bi bi-telephone-fill me-1"></i>${a.telefono}</span></div>
+            <form method="post" action="/gym/reserva/eliminar/${a.id}/" class="m-0">
+              <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+              <input type="hidden" name="redirect_to" value="reserva_nutricional">
+              <button type="submit" class="btn btn-sm btn-link text-danger p-0"
+                onclick="return confirm('¿Quitar a ${a.nombre} de esta cita?');">
+                <i class="bi bi-x-circle-fill fs-5"></i></button>
+            </form></div>`;
+        });
+      } else {
+        html += '<div class="list-group-item py-3 text-center text-muted">Bloque disponible</div>';
+      }
+      html += '</div>';
+      contenedor.innerHTML = html;
+    });
+}
 </script>
 {% endblock %}
