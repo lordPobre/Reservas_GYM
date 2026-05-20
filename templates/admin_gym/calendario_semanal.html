@@ -23,7 +23,6 @@
 
   body { background: var(--kh-bg) !important; }
 
-  /* ── PAGE HEADER ── */
   .kh-header {
     background: var(--kh-dark);
     border-radius: var(--kh-radius);
@@ -53,7 +52,6 @@
   }
   .kh-header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-  /* ── BUTTONS ── */
   .kh-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 16px; border-radius: 9px; font-size: 0.78rem;
@@ -66,7 +64,6 @@
   .kh-btn-purple { background: var(--kh-purple); color: #fff; }
   .kh-btn-light { background: var(--kh-surface); color: var(--kh-text); border: 1px solid var(--kh-border); }
 
-  /* ── NAV SEMANA ── */
   .kh-week-nav {
     display: flex; align-items: center; gap: 0;
     border: 1px solid rgba(255,255,255,.2); border-radius: 9px; overflow: hidden;
@@ -83,7 +80,6 @@
     border-right: 1px solid rgba(255,255,255,.15); white-space: nowrap;
   }
 
-  /* ── CALENDAR CARD ── */
   .kh-cal {
     background: var(--kh-surface);
     border-radius: var(--kh-radius);
@@ -92,7 +88,6 @@
     overflow: hidden;
   }
 
-  /* ── TABLE ── */
   .kh-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
   .kh-table thead tr { background: #FAFAFA; border-bottom: 2px solid var(--kh-border); }
@@ -119,7 +114,6 @@
     font-weight: 600; letter-spacing: .6px; margin-bottom: 4px;
   }
 
-  /* ── DIVIDER ROW (RECESO) ── */
   .kh-divider td {
     background: #F9F7FF;
     border-top: 1px dashed #DDD6FE;
@@ -129,10 +123,8 @@
     color: #8B5CF6; letter-spacing: .8px;
   }
 
-  /* ── BODY ROWS ── */
   .kh-table tbody tr:not(.kh-divider):hover td { background: #FAFAFA; }
 
-  /* ── TIME CELL ── */
   .kh-time {
     text-align: right; padding: 0 10px 0 0;
     font-size: 0.68rem; font-weight: 700; color: var(--kh-muted);
@@ -141,8 +133,6 @@
     position: sticky; left: 0; background: #fff; z-index: 2;
     white-space: nowrap;
   }
-
-  /* ── DAY CELL ── */
   .kh-cell {
     padding: 4px; vertical-align: top;
     border-right: 1px solid var(--kh-border);
@@ -152,7 +142,6 @@
   }
   .kh-cell:last-child { border-right: none; }
 
-  /* ── BLOQUE OCUPADO ── */
   .kh-block {
     border-radius: 8px; padding: 6px 8px;
     height: 100%; min-height: 74px;
@@ -194,8 +183,6 @@
     font-size: 0.6rem; font-style: italic; color: #9CA3AF;
     text-align: center; margin-top: 4px;
   }
-
-  /* ── CELDA VACÍA ── */
   .kh-empty {
     border-radius: 8px; min-height: 74px; height: 100%;
     border: 1.5px dashed #DDD6FE;
@@ -209,8 +196,6 @@
   }
   .kh-empty i { font-size: 1.1rem; color: var(--kh-purple); }
   .kh-empty span { font-size: 0.62rem; font-weight: 700; color: var(--kh-purple); letter-spacing: .5px; }
-
-  /* ── LEGEND ── */
   .kh-legend {
     display: flex; gap: 14px; flex-wrap: wrap;
     padding: 10px 16px; margin-top: 12px;
@@ -219,20 +204,14 @@
   }
   .kh-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--kh-muted); font-weight: 500; }
   .kh-leg-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
-
-  /* ── MODAL tweaks ── */
   .modal-content { border-radius: 14px !important; border: none !important; box-shadow: 0 8px 40px rgba(0,0,0,.15) !important; }
   .kh-modal-header { background: var(--kh-dark); color: #fff; border-radius: 14px 14px 0 0 !important; padding: 16px 20px; }
   .kh-modal-header-purple { background: var(--kh-purple); color: #fff; border-radius: 14px 14px 0 0 !important; padding: 16px 20px; }
   .modal-header h5 { font-size: .9rem; font-weight: 700; margin: 0; }
-
-  /* ── SCROLLABLE TABLE ── */
   .kh-table-wrap { overflow-x: auto; }
 </style>
 
 <div class="container-fluid py-3">
-
-  <!-- ═══ HEADER ═══ -->
   <div class="kh-header">
     <div class="kh-header-left">
       <div class="kh-header-icon"><i class="bi bi-calendar3"></i></div>
@@ -256,12 +235,9 @@
     </div>
   </div>
 
-  <!-- ═══ CALENDAR ═══ -->
   <div class="kh-cal">
     <div class="kh-table-wrap">
       <table class="kh-table">
-
-        <!-- HEAD -->
         <thead>
           <tr>
             <th class="kh-time-head"></th>
@@ -275,10 +251,8 @@
           </tr>
         </thead>
 
-        <!-- BODY -->
         <tbody>
           {% for time_slot in slots_manana|add:slots_tarde %}
-
             {% if time_slot == slots_tarde.0 %}
               <tr class="kh-divider">
                 <td colspan="8">— RECESO / CAMBIO DE JORNADA —</td>
@@ -286,14 +260,10 @@
             {% endif %}
 
             <tr>
-              <!-- Hora -->
               <td class="kh-time">{{ time_slot|time:"H:i" }}</td>
-
-              <!-- Celdas por día -->
               {% for dia in dias_semana %}
                 <td class="kh-cell">
                   {% get_bloque bloques_semana dia time_slot as bloque %}
-
                   {% if bloque %}
                     {% with reservas=bloque.reservas_bloque.all ocupacion=bloque.reservas_bloque.count %}
                       <div class="kh-block {% if ocupacion >= bloque.capacidad_maxima %}kh-block-lleno{% else %}kh-block-libre{% endif %}"
@@ -337,7 +307,6 @@
     </div>
   </div>
 
-  <!-- LEYENDA -->
   <div class="kh-legend">
     <div class="kh-legend-item"><span class="kh-leg-dot" style="background:#059669"></span>Disponible</div>
     <div class="kh-legend-item"><span class="kh-leg-dot" style="background:#DC2626"></span>Lleno</div>
@@ -347,13 +316,8 @@
       &nbsp;= Hoy
     </div>
   </div>
+</div>
 
-</div><!-- /container -->
-
-
-<!-- ═══════════════════════════════════════════
-     MODAL — NUEVO ALUMNO  (lógica original)
-════════════════════════════════════════════ -->
 <div class="modal fade" id="modalAlumno" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
     <div class="modal-content">
@@ -411,10 +375,6 @@
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MODAL — CREAR BLOQUES  (lógica original)
-════════════════════════════════════════════ -->
 <div class="modal fade" id="modalNuevoBloque" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -454,10 +414,6 @@
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MODAL — AGENDAR RESERVA  (lógica original)
-════════════════════════════════════════════ -->
 <div class="modal fade" id="modalAgendar" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable">
     <div class="modal-content">
@@ -466,8 +422,6 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
-
-        <!-- Info + borrar bloque -->
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div>
             <h6 class="fw-bold mb-0" style="color:var(--kh-purple)" id="textoBloqueInfo"></h6>
@@ -483,11 +437,9 @@
           </form>
         </div>
 
-        <!-- Lista asistentes -->
         <p class="fw-bold mb-2 small text-uppercase text-muted">Alumnos en este bloque</p>
         <div id="contenedorAsistentes" class="mb-4"></div>
 
-        <!-- Form agendar -->
         <div id="seccionAgregarReserva">
           <form method="post" action="{% url 'agendar_reserva' %}">
             {% csrf_token %}
@@ -528,10 +480,6 @@
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     JS — lógica original intacta
-════════════════════════════════════════════ -->
 <script>
 const urlActual  = "{{ request.get_full_path|escapejs }}";
 const csrfToken  = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
@@ -562,7 +510,6 @@ function abrirDetalleBloque(bloqueId, diaTexto, horaTexto, diaFormatoDB, horaFor
     return;
   }
 
-  // Bloque existente — cargar asistentes
   document.getElementById('textoBloqueInfo').innerText =
     diaTexto + (horaTexto ? ' · ' + horaTexto + ' hrs' : '');
   contenedor.innerHTML = `

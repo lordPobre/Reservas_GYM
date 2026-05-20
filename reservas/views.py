@@ -257,7 +257,6 @@ def agendar_reserva(request):
         alumno = get_object_or_404(FichaAlumno, id=alumno_id)
 
         try:
-            # 1. PARSEO SEGURO DE FECHA Y HORA
             if bloque_id and bloque_id != 'nuevo':
                 bloque_base = get_object_or_404(HorarioBloque, id=bloque_id)
                 fecha_base = bloque_base.dia
@@ -280,8 +279,6 @@ def agendar_reserva(request):
 
             hora_fin_dt = datetime.combine(date.today(), hora_inicio_time) + timedelta(minutes=30)
             hora_fin_time = hora_fin_dt.time()
-
-            # 2. DEFINIR LAS FECHAS A PROCESAR (CORREGIDO)
             fechas_a_procesar = []
             hoy = timezone.localdate()
 
@@ -293,14 +290,11 @@ def agendar_reserva(request):
 
                 for d in range(1, num_days + 1):
                     fecha_iter = date(year, month, d)
-                    
-                    # REGLA CLAVE: Agregamos si es en el futuro O si es exactamente el día que hizo clic (aunque sea lunes y hoy sea viernes)
                     if fecha_iter.weekday() == dia_semana_objetivo and (fecha_iter >= hoy or fecha_iter == fecha_base):
                         fechas_a_procesar.append(fecha_iter)
             else:
                 fechas_a_procesar.append(fecha_base)
 
-            # 3. CREAR RESERVAS EVITANDO CRASHEOS
             reservas_creadas = 0
             reservas_omitidas = 0
             limite_semanal = obtener_limite_clases(alumno)
@@ -319,12 +313,10 @@ def agendar_reserva(request):
                 if Reserva.objects.filter(bloque=bloque, alumno=alumno).exists():
                     continue
 
-                # Verificamos cupo de la sala
                 if bloque.reservas_bloque.count() >= bloque.capacidad_maxima:
                     reservas_omitidas += 1
                     continue
 
-                # Verificamos límite del plan del alumno
                 if tipo_bloque_base == 'ENTRENAMIENTO':
                     lunes = fecha - timedelta(days=fecha.weekday())
                     domingo = lunes + timedelta(days=6)
@@ -341,7 +333,6 @@ def agendar_reserva(request):
                 Reserva.objects.create(bloque=bloque, alumno=alumno)
                 reservas_creadas += 1
 
-            # 4. FEEDBACK INMEDIATO
             if todo_el_mes:
                 if reservas_creadas > 0:
                     messages.success(request, f"¡Éxito! Se agendaron {reservas_creadas} clases para {alumno.nombre_completo}.")
